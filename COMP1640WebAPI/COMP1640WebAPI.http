@@ -1,0 +1,6 @@
+@COMP1640WebAPI_HostAddress = http://localhost:5114
+
+GET {{COMP1640WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
