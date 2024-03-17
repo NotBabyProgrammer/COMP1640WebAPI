@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using COMP1640WebAPI.DataAccess.Data;
+﻿using COMP1640WebAPI.BusinesLogic.DTO;
+using COMP1640WebAPI.BusinesLogic.Repositories;
 using COMP1640WebAPI.DataAccess.Models;
+using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -14,99 +10,30 @@ namespace COMP1640WebAPI.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly COMP1640WebAPIContext _context;
+        private readonly UsersRepository _repository;
+        private readonly IMapper _mapper;
 
-        public UsersController(COMP1640WebAPIContext context)
+        public UsersController(UsersRepository repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
         }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
-        }
-
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Users>> GetUsers(int id)
-        {
-            var users = await _context.Users.FindAsync(id);
-
-            if (users == null)
-            {
-                return NotFound();
-            }
-
-            return users;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsers(int id, Users users)
-        {
-            // Check if the specified roleId exists in the Roles table
-            if (!_context.Roles.Any(r => r.roleId == users.roleId))
-            {
-                return BadRequest("Invalid roleId. Role does not exist.");
-            }
-
-            if (id != users.userId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(users).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsersExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsers(int id)
-        {
-            var users = await _context.Users.FindAsync(id);
-            if (users == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(users);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UsersExists(int id)
-        {
-            return _context.Users.Any(e => e.userId == id);
+            var users = await _repository.GetUsers();
+            return Ok(users);
         }
 
         // POST: api/Users/login
         [HttpPost("login")]
-        public async Task<ActionResult<Users>> Login(Users user)
+        public async Task<ActionResult<Users>> Login(UsersDTOLogin user)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.userName == user.userName && u.password == user.password);
+            var existingUser = await _repository.GetUserByUsernameAsync(user.userName);
 
-            if (existingUser == null)
+            if (existingUser == null || existingUser.password != user.password)
             {
                 return NotFound("Invalid username or password.");
             }
@@ -116,24 +43,59 @@ namespace COMP1640WebAPI.API.Controllers
 
         // POST: api/Users/register
         [HttpPost("register")]
-        public async Task<ActionResult<Users>> Register(Users user)
+        public async Task<ActionResult<Users>> Register(UsersDTOPost user)
         {
-            // Check if username already exists
-            if (await _context.Users.AnyAsync(u => u.userName == user.userName))
+            if (await _repository.IsUsernameExistsAsync(user.userName))
             {
                 return Conflict("Username already exists.");
             }
 
-            // Check if the specified roleId exists in the Roles table
-            if (!_context.Roles.Any(r => r.roleId == user.roleId))
+            var newUser = new Users
             {
-                return BadRequest("Invalid roleId. Role does not exist.");
+                userName = user.userName,
+                password = user.password,
+                roleId = 1 // Hardcoded roleId to 1
+            };
+
+            await _repository.AddUserAsync(newUser);
+
+            return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
+        }
+
+        // PUT: api/Users/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUsers(int id, UsersDTOPut usersDTO)
+        {
+            var userToUpdate = await _repository.GetUserByIdAsync(id);
+            if (userToUpdate == null)
+            {
+                return NotFound();
             }
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _mapper.Map(usersDTO, userToUpdate);
 
-            return CreatedAtAction(nameof(GetUsers), new { id = user.userId }, user);
+            if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
+            {
+                return Conflict("Username already exists.");
+            }
+
+            await _repository.UpdateUserAsync(userToUpdate);
+
+            return NoContent();
+        }
+
+        // DELETE: api/Users/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUsers(int id)
+        {
+            if (!_repository.IsUserExists(id))
+            {
+                return NotFound();
+            }
+
+            await _repository.DeleteUserAsync(id);
+
+            return NoContent();
         }
     }
 }

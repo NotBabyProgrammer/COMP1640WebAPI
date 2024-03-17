@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using COMP1640WebAPI.DataAccess.Data;
+using AutoMapper;
+using System.Reflection;
+using COMP1640WebAPI.BusinesLogic.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<COMP1640WebAPIContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("COMP1640WebAPIContext") ?? throw new InvalidOperationException("Connection string 'COMP1640WebAPIContext' not found.")));
 
 // Add services to the container.
-
+builder.Services.AddAutoMapper(Assembly.GetEntryAssembly());
+builder.Services.AddScoped<UsersRepository>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

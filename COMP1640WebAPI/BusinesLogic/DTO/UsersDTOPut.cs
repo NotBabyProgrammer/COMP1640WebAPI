@@ -2,10 +2,8 @@
 
 namespace COMP1640WebAPI.BusinesLogic.DTO
 {
-    public class UsersDTOPutDelete
+    public class UsersDTOPut
     {
-        [Key]
-        public int Id { get; set; }
         public string? userName { get; set; }
         public string? password { get; set; }
         public int roleId { get; set; }
