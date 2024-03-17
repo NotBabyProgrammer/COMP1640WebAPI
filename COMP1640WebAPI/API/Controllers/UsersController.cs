@@ -47,7 +47,7 @@ namespace COMP1640WebAPI.API.Controllers
         {
             if (await _repository.IsUsernameExistsAsync(user.userName))
             {
-                return Conflict("Username already exists.");
+                return Conflict("Username existing.");
             }
 
             var newUser = new Users
