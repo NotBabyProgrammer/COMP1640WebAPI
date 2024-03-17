@@ -2,5 +2,6 @@
 {
     public class ContributionsDTO
     {
+        public  int usersId {  get; set; }
     }
 }
