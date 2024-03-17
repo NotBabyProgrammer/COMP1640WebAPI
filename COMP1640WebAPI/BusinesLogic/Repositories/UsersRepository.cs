@@ -15,7 +15,10 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         {
             _context = context;
         }
-
+        public async Task<bool> IsRoleExistsAsync(int roleId)
+        {
+            return await _context.Roles.AnyAsync(r => r.roleId == roleId);
+        }
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
             return await _context.Users.ToListAsync();

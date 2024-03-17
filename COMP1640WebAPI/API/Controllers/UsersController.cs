@@ -3,6 +3,7 @@ using COMP1640WebAPI.BusinesLogic.Repositories;
 using COMP1640WebAPI.DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -72,12 +73,17 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
-            _mapper.Map(usersDTO, userToUpdate);
-
             if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
             {
                 return Conflict("Username existing.");
             }
+
+            if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
+            {
+                return BadRequest("Invalid roleId. Role does not exist.");
+            }
+
+            _mapper.Map(usersDTO, userToUpdate);
 
             await _repository.UpdateUserAsync(userToUpdate);
 
