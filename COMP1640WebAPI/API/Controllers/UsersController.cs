@@ -79,23 +79,6 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Users>> PostUsers(Users users)
-        {
-            // Check if the specified roleId exists in the Roles table
-            if (!_context.Roles.Any(r => r.roleId == users.roleId))
-            {
-                return BadRequest("Invalid roleId. Role does not exist.");
-            }
-
-            _context.Users.Add(users);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUsers", new { id = users.userId }, users);
-        }
-
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsers(int id)
@@ -115,6 +98,42 @@ namespace COMP1640WebAPI.API.Controllers
         private bool UsersExists(int id)
         {
             return _context.Users.Any(e => e.userId == id);
+        }
+
+        // POST: api/Users/login
+        [HttpPost("login")]
+        public async Task<ActionResult<Users>> Login(Users user)
+        {
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.userName == user.userName && u.password == user.password);
+
+            if (existingUser == null)
+            {
+                return NotFound("Invalid username or password.");
+            }
+
+            return Ok("RoleId: " + existingUser.roleId);
+        }
+
+        // POST: api/Users/register
+        [HttpPost("register")]
+        public async Task<ActionResult<Users>> Register(Users user)
+        {
+            // Check if username already exists
+            if (await _context.Users.AnyAsync(u => u.userName == user.userName))
+            {
+                return Conflict("Username already exists.");
+            }
+
+            // Check if the specified roleId exists in the Roles table
+            if (!_context.Roles.Any(r => r.roleId == user.roleId))
+            {
+                return BadRequest("Invalid roleId. Role does not exist.");
+            }
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUsers), new { id = user.userId }, user);
         }
     }
 }

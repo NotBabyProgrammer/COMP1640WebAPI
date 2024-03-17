@@ -18,5 +18,6 @@ namespace COMP1640WebAPI.DataAccess.Data
         public DbSet<COMP1640WebAPI.DataAccess.Models.Roles> Roles { get; set; } = default!;
         public DbSet<COMP1640WebAPI.DataAccess.Models.Faculties> Faculties { get; set; } = default!;
         public DbSet<COMP1640WebAPI.DataAccess.Models.GuessAccounts> GuessAccounts { get; set; } = default!;
+        public DbSet<COMP1640WebAPI.DataAccess.Models.Contributions> Contributions { get; set; }
     }
 }
