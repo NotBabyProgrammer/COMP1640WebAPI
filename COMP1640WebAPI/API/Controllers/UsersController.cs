@@ -76,7 +76,7 @@ namespace COMP1640WebAPI.API.Controllers
 
             if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
             {
-                return Conflict("Username already exists.");
+                return Conflict("Username existing.");
             }
             
             await _repository.UpdateUserAsync(userToUpdate);
