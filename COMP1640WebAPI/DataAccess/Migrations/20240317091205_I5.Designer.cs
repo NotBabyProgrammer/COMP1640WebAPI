@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    [Migration("20240317050928_I5")]
+    [Migration("20240317091205_I5")]
     partial class I5
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace COMP1640WebAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -41,12 +41,6 @@ namespace COMP1640WebAPI.Migrations
 
                     b.Property<int>("facultyId")
                         .HasColumnType("int");
-
-                    b.Property<string>("filePath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("imagePath")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")
                         .HasColumnType("nvarchar(max)");

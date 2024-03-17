@@ -17,7 +17,7 @@ namespace COMP1640WebAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -38,12 +38,6 @@ namespace COMP1640WebAPI.Migrations
 
                     b.Property<int>("facultyId")
                         .HasColumnType("int");
-
-                    b.Property<string>("filePath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("imagePath")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")
                         .HasColumnType("nvarchar(max)");

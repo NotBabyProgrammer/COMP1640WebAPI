@@ -19,8 +19,6 @@ namespace COMP1640WebAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     userId = table.Column<int>(type: "int", nullable: false),
                     title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    filePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    imagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     submissionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     closureDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     status = table.Column<string>(type: "nvarchar(max)", nullable: true),
