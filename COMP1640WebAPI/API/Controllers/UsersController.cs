@@ -78,7 +78,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return Conflict("Username existing.");
             }
-
+            
             await _repository.UpdateUserAsync(userToUpdate);
 
             return NoContent();
