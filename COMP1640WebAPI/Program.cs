@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using COMP1640WebAPI.DataAccess.Data;
-using AutoMapper;
 using System.Reflection;
 using COMP1640WebAPI.BusinesLogic.Repositories;
 var builder = WebApplication.CreateBuilder(args);
