@@ -7,6 +7,14 @@ using COMP1640WebAPI.BusinesLogic.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<COMP1640WebAPIContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("COMP1640WebAPIContext") ?? throw new InvalidOperationException("Connection string 'COMP1640WebAPIContext' not found.")));
+builder.Services.AddCors(options => { options.AddPolicy("AllowSpecificOrigin",
+    build =>
+    {
+        build.WithOrigins("*")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddAutoMapper(Assembly.GetEntryAssembly());
@@ -23,7 +31,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
+
+app.UseRouting();
+
+app.UseCors("AllowSpecificOrigin");
 
 app.UseHttpsRedirection();
 
