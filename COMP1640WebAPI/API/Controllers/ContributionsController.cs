@@ -53,7 +53,8 @@ namespace COMP1640WebAPI.API.Controllers
                 // Replace this with your actual logic to save the image path to the database
                 var contributions = new Contributions
                 {
-                    ImagePath = uniqueFileName  // Assuming you have a property named ImagePath in Contributions model
+                    // cai deo gi the nay ??? (BE Cong Linh)
+                    imagePath = uniqueFileName  // Assuming you have a property named ImagePath in Contributions model
                 };
                 _context.Contributions.Add(contributions);
                 await _context.SaveChangesAsync();
@@ -91,7 +92,8 @@ namespace COMP1640WebAPI.API.Controllers
                 // Replace this with your actual logic to save the file path to the database
                 var contributions = new Contributions
                 {
-                    FilePath = uniqueFileName  // Assuming you have a property named FilePath in Contributions model
+                    // cai deo gi the nay ??? (BE Cong Linh)
+                    filePath = uniqueFileName  // Assuming you have a property named FilePath in Contributions model
                 };
                 _context.Contributions.Add(contributions);
                 await _context.SaveChangesAsync();

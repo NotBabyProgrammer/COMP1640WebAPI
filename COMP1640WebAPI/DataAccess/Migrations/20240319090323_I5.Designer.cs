@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    [Migration("20240317091205_I5")]
+    [Migration("20240319090323_I5")]
     partial class I5
     {
         /// <inheritdoc />
