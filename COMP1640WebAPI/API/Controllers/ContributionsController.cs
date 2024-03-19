@@ -1,12 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using COMP1640WebAPI.DataAccess.Data;
 using COMP1640WebAPI.DataAccess.Models;
+
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -15,94 +18,90 @@ namespace COMP1640WebAPI.API.Controllers
     public class ContributionsController : ControllerBase
     {
         private readonly COMP1640WebAPIContext _context;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public ContributionsController(COMP1640WebAPIContext context)
+        public ContributionsController(COMP1640WebAPIContext context, IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
+            _hostingEnvironment = hostingEnvironment;
         }
 
-        // GET: api/Contributions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributions()
-        {
-            return await _context.Contributions.ToListAsync();
-        }
+        // Other existing actions...
 
-        // GET: api/Contributions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Contributions>> GetContributions(int id)
+        // POST: api/Contributions/AddImage
+        [HttpPost("AddImage")]
+        public async Task<IActionResult> AddImage([FromForm] IFormFile image)
         {
-            var contributions = await _context.Contributions.FindAsync(id);
-
-            if (contributions == null)
+            if (image == null || image.Length == 0)
             {
-                return NotFound();
+                return BadRequest("No image uploaded.");
             }
-
-            return contributions;
-        }
-
-        // PUT: api/Contributions/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutContributions(int id, Contributions contributions)
-        {
-            if (id != contributions.contributionId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(contributions).State = EntityState.Modified;
 
             try
             {
+                // Save image to the server
+                string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images");
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                // Add image path to database or do whatever is needed
+                // Example: Save image path to Contributions table
+                // Replace this with your actual logic to save the image path to the database
+                var contributions = new Contributions
+                {
+                    ImagePath = uniqueFileName  // Assuming you have a property named ImagePath in Contributions model
+                };
+                _context.Contributions.Add(contributions);
                 await _context.SaveChangesAsync();
+
+                return Ok("Image uploaded successfully.");
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!ContributionsExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            return NoContent();
         }
 
-        // POST: api/Contributions
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Contributions>> PostContributions(Contributions contributions)
+        // POST: api/Contributions/AddFile
+        [HttpPost("AddFile")]
+        public async Task<IActionResult> AddFile([FromForm] IFormFile file)
         {
-            _context.Contributions.Add(contributions);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetContributions", new { id = contributions.contributionId }, contributions);
-        }
-
-        // DELETE: api/Contributions/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteContributions(int id)
-        {
-            var contributions = await _context.Contributions.FindAsync(id);
-            if (contributions == null)
+            if (file == null || file.Length == 0)
             {
-                return NotFound();
+                return BadRequest("No file uploaded.");
             }
 
-            _context.Contributions.Remove(contributions);
-            await _context.SaveChangesAsync();
+            try
+            {
+                // Save file to the server
+                string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "files");
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
 
-            return NoContent();
-        }
+                // Add file path to database or do whatever is needed
+                // Example: Save file path to Contributions table
+                // Replace this with your actual logic to save the file path to the database
+                var contributions = new Contributions
+                {
+                    FilePath = uniqueFileName  // Assuming you have a property named FilePath in Contributions model
+                };
+                _context.Contributions.Add(contributions);
+                await _context.SaveChangesAsync();
 
-        private bool ContributionsExists(int id)
-        {
-            return _context.Contributions.Any(e => e.contributionId == id);
+                return Ok("File uploaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
