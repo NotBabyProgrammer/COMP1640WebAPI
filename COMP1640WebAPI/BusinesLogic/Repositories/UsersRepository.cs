@@ -4,21 +4,64 @@ using Microsoft.EntityFrameworkCore;
 using COMP1640WebAPI.DataAccess.Data;
 using COMP1640WebAPI.DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace COMP1640WebAPI.BusinesLogic.Repositories
 {
     public class UsersRepository
     {
         private readonly COMP1640WebAPIContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _jwtKey;
 
         public UsersRepository(COMP1640WebAPIContext context)
         {
+            //IHttpContextAccessor httpContextAccessor, IConfiguration configuration
             _context = context;
+            //_httpContextAccessor = httpContextAccessor;
+            //_jwtKey = configuration["Authentication:JwtKey"];
         }
         public async Task<bool> IsRoleExistsAsync(int roleId)
         {
             return await _context.Roles.AnyAsync(r => r.roleId == roleId);
         }
+        //public async Task UpdateUserAsync(Users user)
+        //{
+        //    var userRoleClaim = _httpContextAccessor.HttpContext.User.Claims
+        //        .FirstOrDefault(c => c.Type == "role");
+
+        //    if (userRoleClaim != null && userRoleClaim.Value == "Admin")
+        //    {
+        //        _context.Entry(user).State = EntityState.Modified;
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    else
+        //    {
+        //        throw new UnauthorizedAccessException("User is not authorized to update user.");
+        //    }
+        //}
+
+        //public async Task DeleteUserAsync(int id)
+        //{
+        //    var userRoleClaim = _httpContextAccessor.HttpContext.User.Claims
+        //        .FirstOrDefault(c => c.Type == "role");
+
+        //    if (userRoleClaim != null && userRoleClaim.Value == "Admin")
+        //    {
+        //        var user = await _context.Users.FindAsync(id);
+        //        if (user != null)
+        //        {
+        //            _context.Users.Remove(user);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        throw new UnauthorizedAccessException("User is not authorized to delete user.");
+        //    }
+        //}
+
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
