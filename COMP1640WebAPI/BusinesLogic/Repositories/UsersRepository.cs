@@ -13,8 +13,8 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
     public class UsersRepository
     {
         private readonly COMP1640WebAPIContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly string _jwtKey;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly string _jwtKey;
 
         public UsersRepository(COMP1640WebAPIContext context)
         {

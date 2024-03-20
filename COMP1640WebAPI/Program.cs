@@ -11,12 +11,22 @@ using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 //var key = Encoding.ASCII.GetBytes("API-key");
 //var jwtKey = Configuration["Authentication:JwtKey"];
 builder.Services.AddDbContext<COMP1640WebAPIContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("COMP1640WebAPIContext") ?? throw new InvalidOperationException("Connection string 'COMP1640WebAPIContext' not found.")));
+
+builder.Services.AddDbContext<AuthDataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AuthContext")));
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AuthDataContext>();
+
 builder.Services.AddCors(options => { options.AddPolicy("AllowSpecificOrigin",
     build =>
     {
@@ -26,23 +36,7 @@ builder.Services.AddCors(options => { options.AddPolicy("AllowSpecificOrigin",
     });
 });
 
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//})
-//.AddJwtBearer(options =>
-//{
-//    options.RequireHttpsMetadata = false; // In production, set this to true
-//    options.SaveToken = true;
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuerSigningKey = true,
-//        IssuerSigningKey = new SymmetricSecurityKey(key),
-//        ValidateIssuer = false,
-//        ValidateAudience = false
-//    };
-//});
+//builder.Services.AddAuthentication().AddJwtBearer();
 
 // Add services to the container.
 builder.Services.AddAutoMapper(Assembly.GetEntryAssembly());
@@ -52,7 +46,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
 
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
 var app = builder.Build();
 //var httpContextAccessor = application.Services.GetRequiredService<IHttpContextAccessor>();
 
@@ -65,11 +69,15 @@ if (app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.MapIdentityApi<IdentityUser>();
+
 app.UseRouting();
 
 app.UseCors("AllowSpecificOrigin");
 
 app.UseHttpsRedirection();
+
+//app.UseAuthentication();
 
 app.UseAuthorization();
 
