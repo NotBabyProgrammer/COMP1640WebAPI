@@ -4,6 +4,7 @@ using COMP1640WebAPI.DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -39,7 +40,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Invalid username or password.");
             }
 
-            return Ok("RoleId: " + existingUser.roleId);
+            return Ok("roleId: " + existingUser.roleId);
         }
 
         // POST: api/Users/register
@@ -65,33 +66,40 @@ namespace COMP1640WebAPI.API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
+        //[Authorize(Roles = "Admin")] // Requires "Admin" role for access
         public async Task<IActionResult> PutUsers(int id, UsersDTOPut usersDTO)
         {
-            var userToUpdate = await _repository.GetUserByIdAsync(id);
-            if (userToUpdate == null)
+            try
             {
-                return NotFound();
-            }
+                var userToUpdate = await _repository.GetUserByIdAsync(id);
+                if (userToUpdate == null)
+                {
+                    return NotFound();
+                }
 
-            if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
+                if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
+                {
+                    return Conflict("Username existing.");
+                }
+
+                if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
+                {
+                    return BadRequest("Invalid roleId. Role does not exist.");
+                }
+
+                await _repository.UpdateUserAsync(userToUpdate);
+
+                return NoContent();
+            }
+            catch (Exception ex)
             {
-                return Conflict("Username existing.");
+                return StatusCode(500, ex.Message);
             }
-
-            if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
-            {
-                return BadRequest("Invalid roleId. Role does not exist.");
-            }
-
-            _mapper.Map(usersDTO, userToUpdate);
-
-            await _repository.UpdateUserAsync(userToUpdate);
-
-            return NoContent();
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        //[Authorize(Roles = "Admin")] // Requires "Admin" role for access
         public async Task<IActionResult> DeleteUsers(int id)
         {
             if (!_repository.IsUserExists(id))
