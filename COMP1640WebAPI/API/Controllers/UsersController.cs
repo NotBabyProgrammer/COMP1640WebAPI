@@ -41,7 +41,16 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Invalid username or password.");
             }
 
-            return Ok("roleId: " + existingUser.roleId);
+            var roleId = existingUser.roleId;
+            var accessToken = _repository.GenerateAccessToken(existingUser); // Implement this method to generate access token
+
+            var response = new
+            {
+                RoleId = roleId,
+                AccessToken = accessToken
+            };
+
+            return Ok(response);
         }
 
         // POST: api/Users/register
@@ -76,17 +85,23 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
-            _mapper.Map(usersDTO, userToUpdate);
-            if (userToUpdate.userName != usersDTO.userName && await _repository.IsUsernameExistsAsync(usersDTO.userName))
+            
+
+            // Check if the username has changed and if the new username already exists
+            if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
             {
                 return Conflict("Username existing.");
             }
 
+            // Validate if the role exists
             if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
             {
                 return BadRequest("Invalid roleId. Role does not exist.");
             }
+            // Map properties from usersDTO to userToUpdate
+            _mapper.Map(usersDTO, userToUpdate);
 
+            // Update the user in the database
             await _repository.UpdateUserAsync(userToUpdate);
 
             return NoContent();

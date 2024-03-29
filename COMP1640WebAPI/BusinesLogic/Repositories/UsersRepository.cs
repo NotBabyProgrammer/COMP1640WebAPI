@@ -72,5 +72,9 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         {
             return _context.Users.Any(e => e.userId == id);
         }
+        public string GenerateAccessToken(Users user)
+        {
+            return "COMP1640";
+        }
     }
 }
