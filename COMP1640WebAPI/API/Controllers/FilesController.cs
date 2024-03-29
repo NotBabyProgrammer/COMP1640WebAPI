@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 
+
 namespace FileUploadDownload.Controllers
 {
     
@@ -11,8 +12,8 @@ namespace FileUploadDownload.Controllers
 
         [HttpPost]
         [Route("UploadFile")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UploadFile(IFormFile file, CancellationToken cancellationtoken)
         {
             var result = await WriteFile(file);
@@ -52,16 +53,23 @@ namespace FileUploadDownload.Controllers
         [Route("DownloadFile")]
         public async Task<IActionResult> DownloadFile(string filename)
         {
-            var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload\\Files",filename);
-
-            var provider = new FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(filepath, out var contenttype))
+            try
             {
-                contenttype = "application/octet-stream";
-            }
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload\\Files", filename);
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
-            return File(bytes, contenttype, Path.GetFileName(filepath));
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(filepath, out var contenttype))
+                {
+                    contenttype = "application/octet-stream";
+                }
+
+                var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
+                return File(bytes, contenttype, Path.GetFileName(filepath));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
     }
