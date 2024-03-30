@@ -13,15 +13,9 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
     public class UsersRepository
     {
         private readonly COMP1640WebAPIContext _context;
-        //private readonly IHttpContextAccessor _httpContextAccessor;
-        //private readonly string _jwtKey;
-
         public UsersRepository(COMP1640WebAPIContext context)
         {
-            //IHttpContextAccessor httpContextAccessor, IConfiguration configuration
             _context = context;
-            //_httpContextAccessor = httpContextAccessor;
-            //_jwtKey = configuration["Authentication:JwtKey"];
         }
         public async Task<bool> IsRoleExistsAsync(int roleId)
         {
@@ -31,34 +25,28 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         {
             return await _context.Users.ToListAsync();
         }
-
         public async Task<Users> GetUserByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
         }
-
         public async Task<Users> GetUserByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.userName == username);
         }
-
         public async Task<bool> IsUsernameExistsAsync(string username)
         {
             return await _context.Users.AnyAsync(u => u.userName == username);
         }
-
         public async Task AddUserAsync(Users user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
-
         public async Task UpdateUserAsync(Users user)
         {
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
-
         public async Task DeleteUserAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -75,6 +63,23 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         public string GenerateAccessToken(Users user)
         {
             return "COMP1640";
+        }
+        public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int page, int pageSize, string? userNameFilter)
+        {
+            IQueryable<Users> query = _context.Users;
+
+            // Apply userName filtering if provided
+            if (!string.IsNullOrWhiteSpace(userNameFilter))
+            {
+                query = query.Where(u => u.userName.Contains(userNameFilter));
+            }
+
+            // Apply paging
+            var users = await query.Skip((page - 1) * pageSize)
+                                   .Take(pageSize)
+                                   .ToListAsync();
+
+            return users;
         }
     }
 }

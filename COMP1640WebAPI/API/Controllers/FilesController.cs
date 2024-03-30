@@ -5,21 +5,23 @@ using Microsoft.AspNetCore.StaticFiles;
 
 namespace FileUploadDownload.Controllers
 {
-    
     [ApiController]
     public class FilesController : ControllerBase
     {
-
         [HttpPost]
         [Route("UploadFile")]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UploadFile(IFormFile file, CancellationToken cancellationtoken)
         {
             var result = await WriteFile(file);
             return Ok(result);
         }
-
+        [HttpPost]
+        [Route("UploadImage")]
+        public async Task<IActionResult> UploadImage(IFormFile file, CancellationToken cancellationtoken)
+        {
+            var result = await WriteFile(file);
+            return Ok(result);
+        }
         private async Task<string> WriteFile(IFormFile file)
         {
             string filename = "";
@@ -28,14 +30,14 @@ namespace FileUploadDownload.Controllers
                 var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
                 filename = DateTime.Now.Ticks.ToString() + extension;
 
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload\\Files");
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "API\\Upload\\Files");
 
                 if (!Directory.Exists(filepath))
                 {
                     Directory.CreateDirectory(filepath);
                 }
 
-                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), "Upload\\Files", filename);
+                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), "API\\Upload\\Files", filename);
                 using (var stream = new FileStream(exactpath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -55,7 +57,7 @@ namespace FileUploadDownload.Controllers
         {
             try
             {
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload\\Files", filename);
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "API\\Upload\\Files", filename);
 
                 var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(filepath, out var contenttype))

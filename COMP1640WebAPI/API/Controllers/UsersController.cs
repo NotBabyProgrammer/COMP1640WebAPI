@@ -15,13 +15,11 @@ namespace COMP1640WebAPI.API.Controllers
     {
         private readonly UsersRepository _repository;
         private readonly IMapper _mapper;
-
         public UsersController(UsersRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
         }
-
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
@@ -29,10 +27,17 @@ namespace COMP1640WebAPI.API.Controllers
             var users = await _repository.GetUsers();
             return Ok(users);
         }
-
+        // GET: api/Users
+        [HttpGet("filtering")]
+        public async Task<ActionResult> GetUsers(int page = 1, int pageSize = 10, string? userNameFilter = null)
+        {
+            var users = await _repository.GetUsers(page, pageSize, userNameFilter);
+            return Ok(users);
+        }
         // POST: api/Users/login
+        //public async Task<ActionResult<Users>> Login(UsersDTOLogin user)
         [HttpPost("login")]
-        public async Task<ActionResult<Users>> Login(UsersDTOLogin user)
+        public async Task<ActionResult> Login(UsersDTOLogin user)
         {
             var existingUser = await _repository.GetUserByUsernameAsync(user.userName);
 
@@ -52,7 +57,6 @@ namespace COMP1640WebAPI.API.Controllers
 
             return Ok(response);
         }
-
         // POST: api/Users/register
         [HttpPost("register")]
         public async Task<ActionResult<Users>> Register(UsersDTOPost user)
@@ -61,19 +65,15 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return Conflict("Username existing.");
             }
-
             var newUser = new Users
             {
                 userName = user.userName,
                 password = user.password,
                 roleId = 1 // Hardcoded roleId to 1
             };
-
             await _repository.AddUserAsync(newUser);
-
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
         }
-
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize]
@@ -84,29 +84,20 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound();
             }
-
-            
-
             // Check if the username has changed and if the new username already exists
             if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
             {
                 return Conflict("Username existing.");
             }
-
             // Validate if the role exists
             if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
             {
                 return BadRequest("Invalid roleId. Role does not exist.");
             }
-            // Map properties from usersDTO to userToUpdate
             _mapper.Map(usersDTO, userToUpdate);
-
-            // Update the user in the database
             await _repository.UpdateUserAsync(userToUpdate);
-
             return NoContent();
         }
-
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [Authorize]
@@ -116,9 +107,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound();
             }
-
             await _repository.DeleteUserAsync(id);
-
             return NoContent();
         }
     }
