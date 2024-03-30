@@ -28,93 +28,91 @@ namespace COMP1640WebAPI.API.Controllers
             return await _context.GuessAccounts.ToListAsync();
         }
 
-        // GET: api/GuessAccounts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<GuessAccounts>> GetGuessAccounts(int id)
-        {
-            var guessAccounts = await _context.GuessAccounts.FindAsync(id);
+        //// GET: api/GuessAccounts/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<GuessAccounts>> GetGuessAccounts(int id)
+        //{
+        //    var guessAccounts = await _context.GuessAccounts.FindAsync(id);
 
-            if (guessAccounts == null)
-            {
-                return NotFound();
-            }
+        //    if (guessAccounts == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return guessAccounts;
-        }
+        //    return guessAccounts;
+        //}
 
-        // PUT: api/GuessAccounts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutGuessAccounts(int id, GuessAccounts guessAccounts)
-        {
-            // Check if the specified facultyId exists in the Roles table
-            if (!_context.Faculties.Any(f => f.facultyId == guessAccounts.facultyId))
-            {
-                return BadRequest("Invalid facultyId. Faculty does not exist.");
-            }
+        //// PUT: api/GuessAccounts/5
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutGuessAccounts(int id, GuessAccounts guessAccounts)
+        //{
+        //    // Check if the specified facultyId exists in the Roles table
+        //    if (!_context.Faculties.Any(f => f.facultyId == guessAccounts.facultyId))
+        //    {
+        //        return BadRequest("Invalid facultyId. Faculty does not exist.");
+        //    }
 
-            if (id != guessAccounts.guestId)
-            {
-                return BadRequest();
-            }
+        //    if (id != guessAccounts.guestId)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            _context.Entry(guessAccounts).State = EntityState.Modified;
+        //    _context.Entry(guessAccounts).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!GuessAccountsExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!GuessAccountsExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        // POST: api/GuessAccounts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<GuessAccounts>> PostGuessAccounts(GuessAccounts guessAccounts)
-        {
-            // Check if the specified roleId exists in the Roles table
-            if (!_context.Faculties.Any(f => f.facultyId == guessAccounts.facultyId))
-            {
-                return BadRequest("Invalid facultyId. Faculty does not exist.");
-            }
+        //// POST: api/GuessAccounts
+        //[HttpPost]
+        //public async Task<ActionResult<GuessAccounts>> PostGuessAccounts(GuessAccounts guessAccounts)
+        //{
+        //    // Check if the specified roleId exists in the Roles table
+        //    if (!_context.Faculties.Any(f => f.facultyId == guessAccounts.facultyId))
+        //    {
+        //        return BadRequest("Invalid facultyId. Faculty does not exist.");
+        //    }
 
-            _context.GuessAccounts.Add(guessAccounts);
-            await _context.SaveChangesAsync();
+        //    _context.GuessAccounts.Add(guessAccounts);
+        //    await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGuessAccounts", new { id = guessAccounts.guestId }, guessAccounts);
-        }
+        //    return CreatedAtAction("GetGuessAccounts", new { id = guessAccounts.guestId }, guessAccounts);
+        //}
 
-        // DELETE: api/GuessAccounts/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGuessAccounts(int id)
-        {
-            var guessAccounts = await _context.GuessAccounts.FindAsync(id);
-            if (guessAccounts == null)
-            {
-                return NotFound();
-            }
+        //// DELETE: api/GuessAccounts/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteGuessAccounts(int id)
+        //{
+        //    var guessAccounts = await _context.GuessAccounts.FindAsync(id);
+        //    if (guessAccounts == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            _context.GuessAccounts.Remove(guessAccounts);
-            await _context.SaveChangesAsync();
+        //    _context.GuessAccounts.Remove(guessAccounts);
+        //    await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        private bool GuessAccountsExists(int id)
-        {
-            return _context.GuessAccounts.Any(e => e.guestId == id);
-        }
+        //private bool GuessAccountsExists(int id)
+        //{
+        //    return _context.GuessAccounts.Any(e => e.guestId == id);
+        //}
     }
 }

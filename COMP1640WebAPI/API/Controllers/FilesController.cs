@@ -8,15 +8,13 @@ namespace FileUploadDownload.Controllers
     [ApiController]
     public class FilesController : ControllerBase
     {
-        [HttpPost]
-        [Route("UploadFile")]
+        [HttpPost("UploadFile")]
         public async Task<IActionResult> UploadFile(IFormFile file, CancellationToken cancellationtoken)
         {
             var result = await WriteFile(file);
             return Ok(result);
         }
-        [HttpPost]
-        [Route("UploadImage")]
+        [HttpPost("UploadImage")]
         public async Task<IActionResult> UploadImage(IFormFile file, CancellationToken cancellationtoken)
         {
             var result = await WriteFile(file);
@@ -48,8 +46,6 @@ namespace FileUploadDownload.Controllers
             }
             return filename;
         }
-
-
 
         [HttpGet]
         [Route("DownloadFile")]

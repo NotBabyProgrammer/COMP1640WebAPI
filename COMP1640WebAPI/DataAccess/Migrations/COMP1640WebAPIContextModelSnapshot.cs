@@ -59,7 +59,7 @@ namespace COMP1640WebAPI.Migrations
 
                     b.HasKey("contributionId");
 
-                    b.ToTable("Contributions");
+                    b.ToTable("Contributions", (string)null);
                 });
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.Faculties", b =>
@@ -75,7 +75,7 @@ namespace COMP1640WebAPI.Migrations
 
                     b.HasKey("facultyId");
 
-                    b.ToTable("Faculties");
+                    b.ToTable("Faculties", (string)null);
                 });
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.GuessAccounts", b =>
@@ -97,7 +97,7 @@ namespace COMP1640WebAPI.Migrations
 
                     b.HasKey("guestId");
 
-                    b.ToTable("GuessAccounts");
+                    b.ToTable("GuessAccounts", (string)null);
                 });
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.Roles", b =>
@@ -114,7 +114,7 @@ namespace COMP1640WebAPI.Migrations
 
                     b.HasKey("roleId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.Users", b =>
@@ -136,7 +136,7 @@ namespace COMP1640WebAPI.Migrations
 
                     b.HasKey("userId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 #pragma warning restore 612, 618
         }
