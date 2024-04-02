@@ -46,78 +46,128 @@ namespace COMP1640WebAPI.API.Controllers
             return contributions;
         }
         // PUT: api/Contributions/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutContributions(int id, Contributions contributions)
+        public async Task<IActionResult> PutContributions(int id, [FromForm] ContributionsDTOPut contributionsDTO, List<IFormFile> files, List<IFormFile> images)
         {
-            if (id != contributions.contributionId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(contributions).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ContributionsExists(id))
+                var contributions = await _context.Contributions.FindAsync(id);
+                List<string> filePaths = new List<string>();
+                List<string> imagePaths = new List<string>();
+                if (contributions == null)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
-            }
-            return NoContent();
-        }
-        // POST: api/Contributions
-        [HttpPost("PostContributions")]
-        public async Task<ActionResult<Contributions>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, IFormFile file, IFormFile image, CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (file == null || file.Length == 0)
-                {
-                    return BadRequest("File not provided.");
-                }
-                if (image == null || image.Length == 0)
-                {
-                    return BadRequest("Image not provided.");
-                }
-                //638474425145239665.docx
 
-                // Your existing logic to handle the file goes here
-                string filePath = await WriteFile(file, "Files");
-                string imagePath = await WriteFile(image, "Images");
-
-                var query = new Contributions
+                if (files == null || files.Count == 0)
                 {
-                    userId = contributionsDTO.userId,
-                    title = contributionsDTO.title,
-                    filePath = filePath,
-                    imagePath = imagePath,
-                    submissionDate = DateTime.Now,
-                    closureDate = DateTime.Now.AddDays(14), // Closure date is 14 days after submission
-                    status = "on-time", // Assuming it's on-time by default
-                    approval = false, // Default approval status
-                    facultyId = contributionsDTO.facultyId
-                };
-                _context.Contributions.Add(query);
+                    return BadRequest("Files not provided.");
+                }
+                if (images == null || images.Count == 0)
+                {
+                    return BadRequest("Images not provided.");
+                }
+
+                foreach (var file in files)
+                {
+                    if (file.Length == 0)
+                    {
+                        return BadRequest("File is empty.");
+                    }
+                    filePaths.Add(await WriteFile(file, "Files"));
+                }
+
+                foreach (var image in images)
+                {
+                    if (image.Length == 0)
+                    {
+                        return BadRequest("Image is empty.");
+                    }
+                    imagePaths.Add(await WriteFile(image, "Images"));
+                }
+
+                // Update properties if provided in the DTO
+
+                if (contributionsDTO.title != null)
+                {
+                    contributions.title = contributionsDTO.title;
+                }
+                contributions.filePaths = filePaths;
+                contributions.imagePaths = imagePaths;
+                contributions.approval = contributionsDTO.approval.Value;
+                contributions.comments = contributionsDTO.comments;
+
+                _context.Entry(contributions).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
-                // Return a success response
-                return CreatedAtAction("GetContributions", new { id = query.contributionId }, query);
+                return NoContent();
             }
             catch (Exception ex)
             {
-                // Return an error response if an exception occurs
                 return StatusCode(500, ex.Message);
             }
         }
+
+        // POST: api/Contributions
+        [HttpPost("AddArticles")]
+        public async Task<ActionResult<Contributions>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (files == null || files.Count == 0)
+                {
+                    return BadRequest("Files not provided.");
+                }
+                if (images == null || images.Count == 0)
+                {
+                    return BadRequest("Images not provided.");
+                }
+
+                List<string> filePaths = new List<string>();
+                List<string> imagePaths = new List<string>();
+
+                foreach (var file in files)
+                {
+                    if (file.Length == 0)
+                    {
+                        return BadRequest("File is empty.");
+                    }
+                    filePaths.Add(await WriteFile(file, "Files"));
+                }
+
+                foreach (var image in images)
+                {
+                    if (image.Length == 0)
+                    {
+                        return BadRequest("Image is empty.");
+                    }
+                    imagePaths.Add(await WriteFile(image, "Images"));
+                }
+
+                var contributions = new Contributions
+                {
+                    userId = contributionsDTO.userId,
+                    title = contributionsDTO.title,
+                    filePaths = filePaths,
+                    imagePaths = imagePaths,
+                    submissionDate = DateTime.Now,
+                    closureDate = DateTime.Now.AddDays(14),
+                    status = "on-time",
+                    approval = false,
+                    facultyName = contributionsDTO.facultyName
+                };
+
+                _context.Contributions.Add(contributions);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetContributions", new { id = contributions.contributionId }, contributions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         private async Task<string> WriteFile(IFormFile file, string folderName)
         {
             string filename = "";

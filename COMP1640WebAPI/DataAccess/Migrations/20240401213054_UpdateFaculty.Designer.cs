@@ -4,6 +4,7 @@ using COMP1640WebAPI.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    partial class COMP1640WebAPIContextModelSnapshot : ModelSnapshot
+    [Migration("20240401213054_UpdateFaculty")]
+    partial class UpdateFaculty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,16 +39,13 @@ namespace COMP1640WebAPI.Migrations
                     b.Property<DateTime?>("closureDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("comments")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("facultyName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("filePaths")
+                    b.Property<string>("filePath")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("imagePaths")
+                    b.Property<string>("imagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")
