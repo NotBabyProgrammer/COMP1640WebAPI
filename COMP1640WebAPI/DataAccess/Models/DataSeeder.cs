@@ -57,6 +57,15 @@ namespace COMP1640WebAPI.DataAccess.Models
                 _context.Users.AddRange(users);
                 _context.SaveChanges();
             }
+            if (!_context.Coordinators.Any())
+            {
+                var coordinators = new List<Coordinators>()
+                {
+                    new Coordinators {userId = 3, facultyId = 1}
+                };
+                _context.Coordinators.AddRange(coordinators);
+                _context.SaveChanges();
+            }
         }
     }
 }
