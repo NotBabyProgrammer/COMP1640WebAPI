@@ -14,7 +14,7 @@ namespace COMP1640WebAPI.DataAccess.Models
         public DateTime? submissionDate { get; set; } // take right now time
         public DateTime? closureDate { get; set; } // closure date is 14 days after submission
         public string? status { get; set; } // outdated or on-time
-        public bool? approval { get; set; } // false as default
+        public string? approval { get; set; } // false as default
         public string? facultyName { get; set; } // students write in their faculties
         public string? comments { get; set; }
     }

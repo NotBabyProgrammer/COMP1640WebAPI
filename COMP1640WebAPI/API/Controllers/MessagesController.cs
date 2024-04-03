@@ -15,7 +15,7 @@ public class MessagesController : ControllerBase
     }
 
     [HttpPost("send")]
-    public async Task<IActionResult> SendMessage(string senderId, string receiverId, string message)
+    public async Task<IActionResult> SendMessage(int senderId, int receiverId, string message)
     {
         // Store message in database
         // Broadcast message to all clients

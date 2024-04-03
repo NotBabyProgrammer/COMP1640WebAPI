@@ -66,37 +66,42 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("Nullable object must have a value");
                 }
 
-                if (contributions.approval == false && contributionsDTO.approval == true)
+                if (contributions.approval.ToLower() == "false" && contributionsDTO.approval.ToLower() == "true")
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", true);
+                        MoveFile(filePath, "Files", $"{contributions.userId}", "true");
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", true);
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", "true");
                     }
                 }
-                else if (contributions.approval == true && contributionsDTO.approval == false)
+                else if (contributions.approval.ToLower() == "true" && contributionsDTO.approval.ToLower() == "false")
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", false);
+                        MoveFile(filePath, "Files", $"{contributions.userId}", "false");
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", false);
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", "false");
                     }
+                }
+
+                if (contributionsDTO.approval != "true" && contributionsDTO.approval != "false")
+                {
+                    return BadRequest("Invalid approval input (True or False only)");
                 }
 
                 // Update properties if provided in the DTO
-                contributions.approval = contributionsDTO.approval.Value;
+                contributions.approval = contributionsDTO.approval;
                 contributions.comments = contributionsDTO.comments;
                 _context.Entry(contributions).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -198,7 +203,7 @@ namespace COMP1640WebAPI.API.Controllers
                     submissionDate = DateTime.Now,
                     closureDate = DateTime.Now.AddDays(14),
                     status = "on-time",
-                    approval = false,
+                    approval = "false",
                     facultyName = contributionsDTO.facultyName
                 };
 
@@ -304,22 +309,26 @@ namespace COMP1640WebAPI.API.Controllers
             return _context.Contributions.Any(e => e.contributionId == id);
         }
 
-        private void MoveFile(string filePath, string folderName, string newFolderName, bool? approval)
+        private void MoveFile(string filePath, string folderName, string newFolderName, string? approval)
         {
             try
             {
                 var fileName = Path.GetFileName(filePath);
                 var sourcePath = "";
                 var targetPath = "";
-                if (approval == true)
+                if (approval.ToLower() == "true")
                 {
                     sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
                     targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
                 }
-                else
+                else if (approval.ToLower() == "false")
                 {
                     sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
                     targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
+                }
+                else
+                {
+                    throw new Exception("Invalid input");
                 }
                 // Check if the source file exists
                 if (!System.IO.File.Exists(sourcePath))
