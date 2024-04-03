@@ -61,6 +61,11 @@ namespace COMP1640WebAPI.API.Controllers
                     return NotFound();
                 }
 
+                if (contributionsDTO.approval == null)
+                {
+                    return BadRequest("Nullable object must have a value");
+                }
+
                 if (contributions.approval == null)
                 {
                     return BadRequest("Nullable object must have a value");
