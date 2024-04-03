@@ -51,6 +51,7 @@ namespace COMP1640WebAPI.API.Controllers
 
             var response = new
             {
+                UserId = existingUser.userId,
                 RoleId = roleId,
                 AccessToken = accessToken
             };
