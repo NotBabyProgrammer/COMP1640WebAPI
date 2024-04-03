@@ -16,6 +16,6 @@ namespace COMP1640WebAPI.DataAccess.Models
         public string? status { get; set; } // outdated or on-time
         public bool? approval { get; set; } // false as default
         public string? facultyName { get; set; } // students write in their faculties
-        public List<string>? comments {  get; set; }
+        public string? comments {  get; set; }
     }
 }
