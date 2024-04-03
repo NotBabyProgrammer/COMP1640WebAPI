@@ -65,14 +65,8 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     return BadRequest("Nullable object must have a value");
                 }
-                // Update properties if provided in the DTO
-                contributions.approval = contributionsDTO.approval.Value;
-                contributions.comments = contributionsDTO.comments;
 
-                _context.Entry(contributions).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-
-                if (contributions.approval == true)
+                if (contributions.approval == false && contributionsDTO.approval == true)
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
@@ -86,7 +80,7 @@ namespace COMP1640WebAPI.API.Controllers
                         MoveFile(imagePath, "Images", $"{contributions.userId}", true);
                     }
                 }
-                else if (contributions.approval == false)
+                else if (contributions.approval == true && contributionsDTO.approval == false)
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
@@ -100,11 +94,18 @@ namespace COMP1640WebAPI.API.Controllers
                         MoveFile(imagePath, "Images", $"{contributions.userId}", false);
                     }
                 }
+
+                // Update properties if provided in the DTO
+                contributions.approval = contributionsDTO.approval.Value;
+                contributions.comments = contributionsDTO.comments;
+                _context.Entry(contributions).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return NotFound("Files not found!");
+                return NotFound(ex.Message);
             }
         }
 
