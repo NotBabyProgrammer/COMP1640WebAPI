@@ -18,13 +18,13 @@ namespace COMP1640WebAPI.BusinesLogic.MappingProfiles
                                                             .ForMember(dest => dest.approval, opt => opt.Ignore());
             CreateMap<Contributions, ContributionsDTOPost>().ForMember(dest => dest.userId, opt => opt.MapFrom(scr => scr.userId));
 
-            CreateMap<ContributionsDTOPut, Contributions>().ForMember(dest => dest.title, opt => opt.MapFrom(scr => scr.title))
+            CreateMap<ContributionsDTOReview, Contributions>().ForMember(dest => dest.approval, opt => opt.MapFrom(scr => scr.approval))
                                                            .ForMember(dest => dest.userId, opt => opt.Ignore())
                                                            .ForMember(dest => dest.contributionId, opt => opt.Ignore())
                                                            .ForMember(dest => dest.submissionDate, opt => opt.Ignore())
                                                            .ForMember(dest => dest.closureDate, opt => opt.Ignore())
                                                            .ForMember(dest => dest.facultyName, opt => opt.Ignore());
-            CreateMap<Contributions, ContributionsDTOPut>().ForMember(dest => dest.title, opt => opt.MapFrom(scr => scr.title));
+            CreateMap<Contributions, ContributionsDTOReview>().ForMember(dest => dest.approval, opt => opt.MapFrom(scr => scr.approval));
         }
     }
 }
