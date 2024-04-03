@@ -31,9 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="API\Upload\Files\" />
-    <Folder Include="API\Upload\Images\" />
-    <Folder Include="API\Upload\Selected\" />
+    <Folder Include="API\Upload\Selected\6.0\" />
   </ItemGroup>
 
 </Project>

@@ -10,6 +10,7 @@ using COMP1640WebAPI.DataAccess.Models;
 using Microsoft.AspNetCore.StaticFiles;
 using COMP1640WebAPI.BusinesLogic.DTO;
 using AutoMapper;
+using System.IO.Compression;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -19,11 +20,13 @@ namespace COMP1640WebAPI.API.Controllers
     {
         private readonly COMP1640WebAPIContext _context;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _environment;
 
-        public ContributionsController(COMP1640WebAPIContext context, IMapper mapper)
+        public ContributionsController(COMP1640WebAPIContext context, IMapper mapper, IWebHostEnvironment environment)
         {
             _context = context;
             _mapper = mapper;
+            _environment = environment;
         }
 
         // GET: api/Contributions
@@ -49,19 +52,60 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpPut("Review/{id}")]
         public async Task<IActionResult> ReviewContributions(int id, [FromForm] ContributionsDTOReview contributionsDTO)
         {
-            var contributions = await _context.Contributions.FindAsync(id);
-            if (contributions == null)
+            try
             {
-                return NotFound();
+                var contributions = await _context.Contributions.FindAsync(id);
+
+                if (contributions == null)
+                {
+                    return NotFound();
+                }
+
+                if (contributions.approval == null)
+                {
+                    return BadRequest("Nullable object must have a value");
+                }
+                // Update properties if provided in the DTO
+                contributions.approval = contributionsDTO.approval.Value;
+                contributions.comments = contributionsDTO.comments;
+
+                _context.Entry(contributions).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                if (contributions.approval == true)
+                {
+                    // Move files to the specified directory
+                    foreach (var filePath in contributions.filePaths)
+                    {
+                        MoveFile(filePath, "Files", $"{contributions.userId}", true);
+                    }
+
+                    // Move images to the specified directory
+                    foreach (var imagePath in contributions.imagePaths)
+                    {
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", true);
+                    }
+                }
+                else if (contributions.approval == false)
+                {
+                    // Move files to the specified directory
+                    foreach (var filePath in contributions.filePaths)
+                    {
+                        MoveFile(filePath, "Files", $"{contributions.userId}", false);
+                    }
+
+                    // Move images to the specified directory
+                    foreach (var imagePath in contributions.imagePaths)
+                    {
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", false);
+                    }
+                }
+                return NoContent();
             }
-            // Update properties if provided in the DTO
-            contributions.approval = contributionsDTO.approval.Value;
-            contributions.comments = contributionsDTO.comments;
-
-            _context.Entry(contributions).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return NotFound("Files not found!");
+            }
         }
 
         //PUT: api/Contributions/Edit/5
@@ -108,7 +152,7 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-        // POST: api/Contributions
+        // POST: api/Contributions/AddArticles
         [HttpPost("AddArticles")]
         public async Task<ActionResult<Contributions>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
         {
@@ -167,6 +211,65 @@ namespace COMP1640WebAPI.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        
+        // DELETE: api/Contributions/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteContributions(int id)
+        {
+            var contributions = await _context.Contributions.FindAsync(id);
+            if (contributions == null)
+            {
+                return NotFound();
+            }
+
+            _context.Contributions.Remove(contributions);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        //GET: api/Contributions/Download/5
+        [HttpGet("Download/{contributionId}")]
+        public async Task<IActionResult> DownloadZip(int contributionId)
+        {
+            var contribution = await _context.Contributions.FindAsync(contributionId);
+            if (contribution == null)
+            {
+                return NotFound("Contribution not found!");
+            }
+
+            var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.userId}");
+            if (!Directory.Exists(folderPath))
+            {
+                return NotFound("Contribution not found2!");
+            }
+            var files = Directory.GetFiles(folderPath);
+            if (files.Length == 0)
+            {
+                return NotFound("Contribution not found3!");
+            }
+
+            using (var memoryStream = new  MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var file in files)
+                    {
+                        var fileInfo = new FileInfo(file);
+                        var entry = zipArchive.CreateEntry(fileInfo.Name);
+                        using (var entryStream = entry.Open())
+                        {
+                            using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                            {
+                                fileStream.CopyTo(entryStream);
+                            }
+                        }
+                    }
+                }
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return File(memoryStream.ToArray(), "application/zip", $"{contributionId}.zip");
+            }
+        }
 
         private async Task<string> WriteFile(IFormFile file, string folderName)
         {
@@ -194,68 +297,48 @@ namespace COMP1640WebAPI.API.Controllers
             }
             return filename;
         }
-        // DELETE: api/Contributions/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteContributions(int id)
-        {
-            var contributions = await _context.Contributions.FindAsync(id);
-            if (contributions == null)
-            {
-                return NotFound();
-            }
 
-            _context.Contributions.Remove(contributions);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-        [HttpGet]
-        [Route("DownloadFile")]
-        public async Task<IActionResult> DownloadFile(string filename)
-        {
-            try
-            {
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "API\\Upload\\Files", filename);
-
-                var provider = new FileExtensionContentTypeProvider();
-                if (!provider.TryGetContentType(filepath, out var contenttype))
-                {
-                    contenttype = "application/octet-stream";
-                }
-
-                var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
-                return File(bytes, contenttype, Path.GetFileName(filepath));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        [HttpGet]
-        [Route("DownloadImage")]
-        public async Task<IActionResult> DownloadImage(string filename)
-        {
-            try
-            {
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "API\\Upload\\Images", filename);
-
-                var provider = new FileExtensionContentTypeProvider();
-                if (!provider.TryGetContentType(filepath, out var contenttype))
-                {
-                    contenttype = "application/octet-stream";
-                }
-
-                var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
-                return File(bytes, contenttype, Path.GetFileName(filepath));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
         private bool ContributionsExists(int id)
         {
             return _context.Contributions.Any(e => e.contributionId == id);
+        }
+
+        private void MoveFile(string filePath, string folderName, string newFolderName, bool? approval)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(filePath);
+                var sourcePath = "";
+                var targetPath = "";
+                if (approval == true)
+                {
+                    sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
+                    targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
+                }
+                else
+                {
+                    sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
+                    targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
+                }
+                // Check if the source file exists
+                if (!System.IO.File.Exists(sourcePath))
+                {
+                    throw new FileNotFoundException("Source file not found.");
+                }
+
+                // Ensure that the target directory exists
+                if (!Directory.Exists(Path.GetDirectoryName(targetPath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+                }
+
+                // Move the file to the target directory
+                System.IO.File.Move(sourcePath, targetPath);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to move file: {ex.Message}");
+            }
         }
     }
 }
