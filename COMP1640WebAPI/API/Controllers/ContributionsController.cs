@@ -50,7 +50,7 @@ namespace COMP1640WebAPI.API.Controllers
         }
         // PUT: api/Contributions/Review/5
         [HttpPut("Review/{id}")]
-        public async Task<IActionResult> ReviewContributions(int id, [FromForm] ContributionsDTOReview contributionsDTO)
+        public async Task<IActionResult> ReviewContributions(int id, ContributionsDTOReview contributionsDTO)
         {
             try
             {
@@ -66,43 +66,38 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("Nullable object must have a value");
                 }
 
-                if (contributions.approval == null)
-                {
-                    return BadRequest("Nullable object must have a value");
-                }
+                //if (contributions.approval == null)
+                //{
+                //    return BadRequest("Nullable object must have a value");
+                //}
 
-                if (contributions.approval.ToLower() == "false" && contributionsDTO.approval.ToLower() == "true")
+                if (contributions.approval == false && contributionsDTO.approval == true)
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", "true");
+                        MoveFile(filePath, "Files", $"{contributions.userId}", true);
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", "true");
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", true);
                     }
                 }
-                else if (contributions.approval.ToLower() == "true" && contributionsDTO.approval.ToLower() == "false")
+                else if (contributions.approval == true && contributionsDTO.approval == false)
                 {
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", "false");
+                        MoveFile(filePath, "Files", $"{contributions.userId}", false);
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", "false");
+                        MoveFile(imagePath, "Images", $"{contributions.userId}", false);
                     }
-                }
-
-                if (contributionsDTO.approval != "true" && contributionsDTO.approval != "false")
-                {
-                    return BadRequest("Invalid approval input (True or False only)");
                 }
 
                 // Update properties if provided in the DTO
@@ -169,6 +164,17 @@ namespace COMP1640WebAPI.API.Controllers
         {
             try
             {
+                // Check if FacultyName exists in the Faculties table
+                var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
+                if (contributionsDTO.title == null)
+                {
+                    return BadRequest("There are null objects");
+                }
+                if (!facultyExists)
+                {
+                    return NotFound("Faculty Name does not exist.");
+                }
+
                 if (files == null || files.Count == 0)
                 {
                     return BadRequest("Files not provided.");
@@ -208,7 +214,7 @@ namespace COMP1640WebAPI.API.Controllers
                     submissionDate = DateTime.Now,
                     closureDate = DateTime.Now.AddDays(14),
                     status = "on-time",
-                    approval = "false",
+                    approval = false,
                     facultyName = contributionsDTO.facultyName
                 };
 
@@ -222,7 +228,8 @@ namespace COMP1640WebAPI.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        
+
+
         // DELETE: api/Contributions/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteContributions(int id)
@@ -314,19 +321,19 @@ namespace COMP1640WebAPI.API.Controllers
             return _context.Contributions.Any(e => e.contributionId == id);
         }
 
-        private void MoveFile(string filePath, string folderName, string newFolderName, string? approval)
+        private void MoveFile(string filePath, string folderName, string newFolderName, bool? approval)
         {
             try
             {
                 var fileName = Path.GetFileName(filePath);
                 var sourcePath = "";
                 var targetPath = "";
-                if (approval.ToLower() == "true")
+                if (approval == true)
                 {
                     sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
                     targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
                 }
-                else if (approval.ToLower() == "false")
+                else if (approval == false)
                 {
                     sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
                     targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
