@@ -172,6 +172,20 @@ namespace COMP1640WebAPI.API.Controllers
 
                 // Check if FacultyName exists in the Faculties table
                 var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
+                //var acaYearExists = await _context.AcademicYears.AnyAsync(aca => aca.Id == contributionsDTO.academicYearId);
+                var contributionsDate = await _context.ContributionsDates.FirstOrDefaultAsync();
+
+                if (contributionsDate == null)
+                {
+                    // Handle the case where no ContributionsDate is found
+                    return NotFound("No ContributionsDate found.");
+                }
+
+                //if (!acaYearExists)
+                //{
+                //    return NotFound("Academic Year does not exist.");
+                //}
+
                 if (!facultyExists)
                 {
                     return NotFound("Faculty Name does not exist.");
@@ -227,10 +241,22 @@ namespace COMP1640WebAPI.API.Controllers
                     imagePaths = imagePaths,
                     submissionDate = DateTime.Now,
                     approvalDate = DateTime.Now.AddDays(14),
+                    endDate = contributionsDate.finalEndDate,
                     status = "on-time",
                     approval = false,
-                    facultyName = contributionsDTO.facultyName
+                    facultyName = contributionsDTO.facultyName,
+                    academicYearId = 1
                 };
+
+                if (contributions.submissionDate < contributionsDate.startDate || contributions.submissionDate > contributionsDate.endDate)
+                {
+                    return BadRequest("Cannot submit, might be too early or overdue");
+                }
+
+                if (contributionsDate.academicYearId != contributions.academicYearId)
+                {
+                    return BadRequest("Invalid input");
+                }
 
                 _context.Contributions.Add(contributions);
                 await _context.SaveChangesAsync();
@@ -253,11 +279,48 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
+            // Delete associated files
+            foreach (var filePath in contributions.filePaths)
+            {
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    DeleteFile(filePath, id);
+                }
+            }
+
+            foreach (var imagePath in contributions.imagePaths)
+            {
+                if (!string.IsNullOrEmpty(imagePath))
+                {
+                    DeleteFile(imagePath, id);
+                }
+            }
+
+            // Remove contribution from the database
             _context.Contributions.Remove(contributions);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
+        private void DeleteFile(string filePath, int contributionId)
+        {
+            var deleteFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload", filePath);
+            var deleteSelectedFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{contributionId}", filePath);
+            if (System.IO.File.Exists(deleteFile))
+            {
+                System.IO.File.Delete(deleteFile);
+            }
+            else if (System.IO.File.Exists(deleteSelectedFile))
+            {
+                System.IO.File.Delete(deleteSelectedFile);
+            }
+            else
+            {
+                throw new Exception("File not found");
+            }
+        }
+
 
         //GET: api/Contributions/Download/5
         [HttpGet("Download/{contributionId}")]

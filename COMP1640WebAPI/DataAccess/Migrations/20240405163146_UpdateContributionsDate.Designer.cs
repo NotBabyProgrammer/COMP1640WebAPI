@@ -4,6 +4,7 @@ using COMP1640WebAPI.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    partial class COMP1640WebAPIContextModelSnapshot : ModelSnapshot
+    [Migration("20240405163146_UpdateContributionsDate")]
+    partial class UpdateContributionsDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +52,7 @@ namespace COMP1640WebAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("contributionId"));
 
-                    b.Property<int>("academicYearId")
+                    b.Property<int>("acedemicYearId")
                         .HasColumnType("int");
 
                     b.Property<bool?>("approval")

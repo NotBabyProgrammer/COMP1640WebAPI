@@ -6,6 +6,7 @@ namespace COMP1640WebAPI.DataAccess.Models
     {
         [Key]
         public int contributionsDateId {  get; set; }
+        public int academicYearId { get; set; }
         public DateTime? startDate { get; set; }
         public DateTime? endDate { get; set; } // validate: should be after startDate and more than 1 months
         public DateTime? finalEndDate { get; set; } //validate: should be after endDate and more than 1 weeks

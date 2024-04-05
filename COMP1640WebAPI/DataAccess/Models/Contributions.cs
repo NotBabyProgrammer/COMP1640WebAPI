@@ -18,5 +18,6 @@ namespace COMP1640WebAPI.DataAccess.Models
         public bool? approval { get; set; } // false as default
         public string? facultyName { get; set; } // students write in their faculties
         public string? comments { get; set; }
+        public int academicYearId { get; set; }
     }
 }
