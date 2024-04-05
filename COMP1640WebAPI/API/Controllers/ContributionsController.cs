@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using COMP1640WebAPI.BusinesLogic.DTO;
 using AutoMapper;
 using System.IO.Compression;
+using System.Net.Mime;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -76,13 +77,13 @@ namespace COMP1640WebAPI.API.Controllers
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", true);
+                        MoveFile(filePath, $"{id}", true);
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", true);
+                        MoveFile(imagePath, $"{id}", true);
                     }
                 }
                 else if (contributions.approval == true && contributionsDTO.approval == false)
@@ -90,13 +91,13 @@ namespace COMP1640WebAPI.API.Controllers
                     // Move files to the specified directory
                     foreach (var filePath in contributions.filePaths)
                     {
-                        MoveFile(filePath, "Files", $"{contributions.userId}", false);
+                        MoveFile(filePath, $"{id}", false);
                     }
 
                     // Move images to the specified directory
                     foreach (var imagePath in contributions.imagePaths)
                     {
-                        MoveFile(imagePath, "Images", $"{contributions.userId}", false);
+                        MoveFile(imagePath, $"{id}", false);
                     }
                 }
 
@@ -136,7 +137,7 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     return BadRequest("File is empty.");
                 }
-                filePaths.Add(await WriteFile(file, "Files"));
+                filePaths.Add(await WriteFile(file));
             }
 
             foreach (var image in images)
@@ -145,7 +146,7 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     return BadRequest("Image is empty.");
                 }
-                imagePaths.Add(await WriteFile(image, "Images"));
+                imagePaths.Add(await WriteFile(image));
             }
             if (contributionsDTO.title != null)
             {
@@ -193,7 +194,7 @@ namespace COMP1640WebAPI.API.Controllers
                     {
                         return BadRequest("File is empty.");
                     }
-                    filePaths.Add(await WriteFile(file, "Files"));
+                    filePaths.Add(await WriteFile(file));
                 }
 
                 foreach (var image in images)
@@ -202,7 +203,7 @@ namespace COMP1640WebAPI.API.Controllers
                     {
                         return BadRequest("Image is empty.");
                     }
-                    imagePaths.Add(await WriteFile(image, "Images"));
+                    imagePaths.Add(await WriteFile(image));
                 }
 
                 var contributions = new Contributions
@@ -228,7 +229,6 @@ namespace COMP1640WebAPI.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
 
         // DELETE: api/Contributions/5
         [HttpDelete("{id}")]
@@ -256,7 +256,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Contribution not found!");
             }
 
-            var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.userId}");
+            var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.contributionId}");
             if (!Directory.Exists(folderPath))
             {
                 return NotFound("Contribution not found2!");
@@ -267,7 +267,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Contribution not found3!");
             }
 
-            using (var memoryStream = new  MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
@@ -289,7 +289,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        private async Task<string> WriteFile(IFormFile file, string folderName)
+        private async Task<string> WriteFile(IFormFile file)
         {
             string filename = "";
             try
@@ -297,14 +297,14 @@ namespace COMP1640WebAPI.API.Controllers
                 var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
                 filename = DateTime.Now.Ticks.ToString() + extension;
 
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}");
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\");
 
                 if (!Directory.Exists(filepath))
                 {
                     Directory.CreateDirectory(filepath);
                 }
 
-                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", filename);
+                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\", filename);
                 using (var stream = new FileStream(exactpath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -321,7 +321,7 @@ namespace COMP1640WebAPI.API.Controllers
             return _context.Contributions.Any(e => e.contributionId == id);
         }
 
-        private void MoveFile(string filePath, string folderName, string newFolderName, bool? approval)
+        private void MoveFile(string filePath, string newFolderName, bool? approval)
         {
             try
             {
@@ -330,13 +330,13 @@ namespace COMP1640WebAPI.API.Controllers
                 var targetPath = "";
                 if (approval == true)
                 {
-                    sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
+                    sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\", fileName);
                     targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
                 }
                 else if (approval == false)
                 {
                     sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{newFolderName}", fileName);
-                    targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\{folderName}", fileName);
+                    targetPath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\", fileName);
                 }
                 else
                 {
