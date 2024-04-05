@@ -4,6 +4,7 @@ using COMP1640WebAPI.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    partial class COMP1640WebAPIContextModelSnapshot : ModelSnapshot
+    [Migration("20240405142238_AddAcademicYears")]
+    partial class AddAcademicYears
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,14 +55,11 @@ namespace COMP1640WebAPI.Migrations
                     b.Property<bool?>("approval")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("approvalDate")
+                    b.Property<DateTime?>("closureDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("comments")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("endDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("facultyName")
                         .HasColumnType("nvarchar(max)");
@@ -85,28 +85,6 @@ namespace COMP1640WebAPI.Migrations
                     b.HasKey("contributionId");
 
                     b.ToTable("Contributions");
-                });
-
-            modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.ContributionsDate", b =>
-                {
-                    b.Property<int>("contributionsDateId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("contributionsDateId"));
-
-                    b.Property<DateTime?>("endDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("finalEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("startDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("contributionsDateId");
-
-                    b.ToTable("contributionsDates");
                 });
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.Coordinators", b =>

@@ -165,22 +165,35 @@ namespace COMP1640WebAPI.API.Controllers
         {
             try
             {
-                // Check if FacultyName exists in the Faculties table
-                var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
                 if (contributionsDTO.title == null)
                 {
                     return BadRequest("There are null objects");
                 }
+
+                // Check if FacultyName exists in the Faculties table
+                var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
                 if (!facultyExists)
                 {
                     return NotFound("Faculty Name does not exist.");
+                }
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.userId == contributionsDTO.userId);
+
+                if (user == null)
+                {
+                    return NotFound("User ID does not exist.");
+                }
+
+                if (user.roleId != 1)
+                {
+                    return BadRequest("Only students can upload articles.");
                 }
 
                 if (files == null || files.Count == 0)
                 {
                     return BadRequest("Files not provided.");
                 }
-                if (images == null || images.Count == 0)
+                else if (images == null || images.Count == 0)
                 {
                     return BadRequest("Images not provided.");
                 }
@@ -213,7 +226,7 @@ namespace COMP1640WebAPI.API.Controllers
                     filePaths = filePaths,
                     imagePaths = imagePaths,
                     submissionDate = DateTime.Now,
-                    closureDate = DateTime.Now.AddDays(14),
+                    approvalDate = DateTime.Now.AddDays(14),
                     status = "on-time",
                     approval = false,
                     facultyName = contributionsDTO.facultyName
