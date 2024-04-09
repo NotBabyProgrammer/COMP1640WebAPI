@@ -23,14 +23,14 @@ namespace COMP1640WebAPI.API.Controllers
 
         // GET: api/AcademicYears
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AcademicYear>>> GetAcademicYears()
+        public async Task<ActionResult<IEnumerable<AcademicYears>>> GetAcademicYears()
         {
             return await _context.AcademicYears.ToListAsync();
         }
 
         // GET: api/AcademicYears/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<AcademicYear>> GetAcademicYear(int id)
+        public async Task<ActionResult<AcademicYears>> GetAcademicYear(int id)
         {
             var academicYear = await _context.AcademicYears.FindAsync(id);
 
@@ -45,7 +45,7 @@ namespace COMP1640WebAPI.API.Controllers
         // PUT: api/AcademicYears/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAcademicYear(int id, AcademicYear academicYear)
+        public async Task<IActionResult> PutAcademicYear(int id, AcademicYears academicYear)
         {
             if (id != academicYear.Id)
             {
@@ -76,7 +76,7 @@ namespace COMP1640WebAPI.API.Controllers
         // POST: api/AcademicYears
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<AcademicYear>> PostAcademicYear(AcademicYear academicYear)
+        public async Task<ActionResult<AcademicYears>> PostAcademicYear(AcademicYears academicYear)
         {
             if ((academicYear.endYear - academicYear.startYear).Value.TotalDays > 11 * 30)
             {

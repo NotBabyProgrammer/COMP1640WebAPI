@@ -12,6 +12,8 @@ using COMP1640WebAPI.BusinesLogic.DTO;
 using AutoMapper;
 using System.IO.Compression;
 using System.Net.Mime;
+using COMP1640WebAPI.BusinesLogic.DTO.Contributions;
+using NuGet.Packaging;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -103,7 +105,7 @@ namespace COMP1640WebAPI.API.Controllers
 
                 // Update properties if provided in the DTO
                 contributions.approval = contributionsDTO.approval;
-                contributions.comments = contributionsDTO.comments;
+                contributions.status = "Reviewed";
                 _context.Entry(contributions).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
@@ -123,7 +125,10 @@ namespace COMP1640WebAPI.API.Controllers
             List<string> filePaths = new List<string>();
             List<string> imagePaths = new List<string>();
             int filesCount = 0;
-            int imagesCount = 0;
+            if (contributionsDTO.title == null)
+            {
+                return BadRequest("Title is null");
+            }
 
             if (files == null || files.Count == 0)
             {
@@ -133,6 +138,18 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return BadRequest("Images not provided.");
             }
+
+            //delete existing files and images
+            foreach (var file in contributions.filePaths)
+            {
+                DeleteFile(file, contributions.contributionId);
+            }
+            foreach (var image in contributions.imagePaths)
+            {
+                DeleteFile(image, contributions.contributionId);
+            }
+
+            //add updated files and images
             foreach (var file in files)
             {
                 if (file.Length == 0)
@@ -140,7 +157,7 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("File is empty.");
                 }
                 filesCount++;
-                filePaths.Add(await WriteFile(filesCount, file, contributions.title));
+                filePaths.Add(await WriteFile(filesCount, file, contributionsDTO.title));
             }
 
             foreach (var image in images)
@@ -150,18 +167,39 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("Image is empty.");
                 }
                 filesCount++;
-                imagePaths.Add(await WriteFile(filesCount, image, contributions.title));
+                imagePaths.Add(await WriteFile(filesCount, image, contributionsDTO.title));
             }
-            if (contributionsDTO.title != null)
-            {
-                contributions.title = contributionsDTO.title;
-            }
+            contributions.title = contributionsDTO.title;
             contributions.filePaths = filePaths;
             contributions.imagePaths = imagePaths;
+            contributions.status = "New";
             _context.Entry(contributions).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        //PUT: api/Contributions/Comment/5
+        [HttpPut("Comment/{id}")]
+        public IActionResult CommentContributions(int id, ContributionsDTOComment contributionsDTO)
+        {
+            var contributions = _context.Contributions.FirstOrDefault(c => c.contributionId == id);
+            if (contributions == null)
+            {
+                return NotFound("Contribution not found.");
+            }
+
+            if (contributions.commentions == null)
+            {
+                contributions.commentions = new List<string>();
+            }
+
+            string comment = $"{contributionsDTO.userName} commented: {contributionsDTO.commentions}";
+            contributions.commentions.Add(comment);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
 
         // POST: api/Contributions/AddArticles
         [HttpPost("AddArticles")]
@@ -219,7 +257,6 @@ namespace COMP1640WebAPI.API.Controllers
                 List<string> filePaths = new List<string>();
                 List<string> imagePaths = new List<string>();
                 int filesCount = 0;
-                int imagesCount = 0;
                 foreach (var file in files)
                 {
                     
@@ -250,7 +287,7 @@ namespace COMP1640WebAPI.API.Controllers
                     submissionDate = DateTime.Now,
                     approvalDate = DateTime.Now.AddDays(14),
                     endDate = contributionsDate.finalEndDate,
-                    status = "on-time",
+                    status = "New",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     academicYearId = 1
@@ -311,57 +348,11 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-        [HttpPut("ConvertToMhtml/{id}")]
-        public async Task<IActionResult> ConvertToMhtml(int id)
-        {
-            var sourcePath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\");
-            var contribution = await _context.Contributions.FindAsync(id);
-            if (contribution == null)
-            {
-                return NotFound();
-            }
-
-            try
-            {
-                // Rename the files
-                foreach (var filePath in contribution.filePaths)
-                {
-                    var newFileName = Path.ChangeExtension(Path.GetFileName(filePath), ".mhtml");
-                    var newFilePath = Path.Combine(sourcePath, newFileName);
-                    var oldFilePath = Path.Combine(sourcePath, filePath);
-                    System.IO.File.Move(oldFilePath, newFilePath);
-                }
-
-                foreach (var imagePath in contribution.imagePaths)
-                {
-                    var newImagePath = Path.Combine(sourcePath, Path.ChangeExtension(Path.GetFileName(imagePath), ".mhtml"));
-                    var oldImagePath = Path.Combine(sourcePath, imagePath);
-                    System.IO.File.Move(oldImagePath, newImagePath);
-                }
-
-                // Generate the MHTML content
-                var mhtmlContent = $"<!DOCTYPE html><html><head><title>{contribution.title}</title></head><body><h1>{contribution.title}</h1></body></html>";
-
-                // Return the MHTML file
-                var contentDisposition = new ContentDisposition
-                {
-                    FileName = $"{contribution.title}.mhtml",
-                    Inline = true
-                };
-                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-                return Content(mhtmlContent, "text/html");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
         //GET: api/Contributions/Download/5
-        [HttpGet("Download/{contributionId}")]
-        public async Task<IActionResult> DownloadZip(int contributionId)
+        [HttpGet("DownloadSelected/{contributionId}")]
+        public async Task<IActionResult> DownloadSelected(int contributionId)
         {
+            // only download APPROVED contributions
             var contribution = await _context.Contributions.FindAsync(contributionId);
             if (contribution == null)
             {
@@ -371,12 +362,12 @@ namespace COMP1640WebAPI.API.Controllers
             var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.contributionId}");
             if (!Directory.Exists(folderPath))
             {
-                return NotFound("Contribution not found2!");
+                return NotFound("Contribution not found!");
             }
             var files = Directory.GetFiles(folderPath);
             if (files.Length == 0)
             {
-                return NotFound("Contribution not found3!");
+                return NotFound("Contribution not found!");
             }
 
             using (var memoryStream = new MemoryStream())
@@ -397,6 +388,8 @@ namespace COMP1640WebAPI.API.Controllers
                     }
                 }
                 memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // also response contribution title, contribution id 
                 return File(memoryStream.ToArray(), "application/zip", $"{contributionId}.zip");
             }
         }
@@ -409,14 +402,14 @@ namespace COMP1640WebAPI.API.Controllers
                 var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
                 filename = count + "-" + title + extension;
 
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\");
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload");
 
                 if (!Directory.Exists(filepath))
                 {
                     Directory.CreateDirectory(filepath);
                 }
 
-                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\", filename);
+                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload", filename);
                 using (var stream = new FileStream(exactpath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -426,72 +419,6 @@ namespace COMP1640WebAPI.API.Controllers
             {
             }
             return filename;
-        }
-
-        //GET: api/Contributions/ViewFiles/5
-        [HttpGet("ViewFiles/{contributionId}")]
-        public async Task<IActionResult> ViewFiles(int contributionId)
-        {
-            try
-            {
-                var sourcePath = Path.Combine(Directory.GetCurrentDirectory(), "API", "Upload");
-                var contribution = await _context.Contributions.FirstOrDefaultAsync(c => c.contributionId == contributionId);
-                if (contribution == null)
-                {
-                    return NotFound("Contribution ID not found.");
-                }
-
-                var generatedFiles = new List<string>();
-                var count = 0;
-
-                foreach (var filePath in contribution.filePaths)
-                {
-                    var oldFilePath = Path.Combine(sourcePath, filePath);
-                    if (!System.IO.File.Exists(oldFilePath))
-                    {
-                        return NotFound($"File '{filePath}' not found.");
-                    }
-
-                    count++;
-                    var newFileName = $"{count}-{contribution.title}.mhtml";
-                    generatedFiles.Add(newFileName); // Add the file name to the list
-
-                    var newFilePath = Path.Combine(sourcePath, newFileName);
-
-                    // Read the content of the file
-                    var fileContent = await System.IO.File.ReadAllTextAsync(oldFilePath);
-
-                    // Write the content to a new MHTML file
-                    await System.IO.File.WriteAllTextAsync(newFilePath, fileContent);
-                }
-
-                foreach (var imagePath in contribution.imagePaths)
-                {
-                    var oldImagePath = Path.Combine(sourcePath, imagePath);
-                    if (!System.IO.File.Exists(oldImagePath))
-                    {
-                        return NotFound($"Image file '{imagePath}' not found.");
-                    }
-
-                    count++;
-                    var newFileName = $"{count}-{contribution.title}.mhtml";
-                    generatedFiles.Add(newFileName); // Add the file name to the list
-
-                    var newImagePath = Path.Combine(sourcePath, newFileName);
-
-                    // Read the content of the image file
-                    var imageContent = await System.IO.File.ReadAllBytesAsync(oldImagePath);
-
-                    // Write the content to a new MHTML file
-                    await System.IO.File.WriteAllBytesAsync(newImagePath, imageContent);
-                }
-
-                return Ok(generatedFiles); // Return the list of generated file names
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
-            }
         }
 
         private bool ContributionsExists(int id)
@@ -543,7 +470,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         private void DeleteFile(string filePath, int contributionId)
         {
-            var deleteFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload", filePath);
+            var deleteFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\", filePath);
             var deleteSelectedFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\Upload\\Selected\\{contributionId}", filePath);
             if (System.IO.File.Exists(deleteFile))
             {
@@ -558,5 +485,7 @@ namespace COMP1640WebAPI.API.Controllers
                 throw new Exception("File not found");
             }
         }
+
+        // FUNCTIONS will be ADDED: download all selected(manager), download to view and approve(coordinator)
     }
 }

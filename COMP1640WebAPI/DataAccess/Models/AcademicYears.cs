@@ -2,7 +2,7 @@
 
 namespace COMP1640WebAPI.DataAccess.Models
 {
-    public class AcademicYear
+    public class AcademicYears
     {
         [Key]
         public int Id { get; set; }

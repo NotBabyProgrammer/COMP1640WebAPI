@@ -43,22 +43,23 @@ namespace COMP1640WebAPI.Controllers
                 .Select(g => new
                 {
                     facultyName = g.Key,
-                    Percentage = ((double)g.Count() / totalContributions) * 100
+                    Percentage = ((double)g.Count() / totalContributions) * 100 + "%"
                 })
                 .ToList();
 
             return Ok(contributionsByFaculty);
         }
 
-        // GET: api/Statistics/ContributionsWithoutComment
+        //GET: api/Statistics/ContributionsWithoutComment
         [HttpGet("ContributionsWithoutComment")]
         public IActionResult GetContributionsWithoutComment()
         {
             var contributionsWithoutComment = _context.Contributions
-                .Where(c => string.IsNullOrEmpty(c.comments))
+                .Where(c => c.commentions == null || c.commentions.Count == 0)
                 .ToList();
 
             return Ok(contributionsWithoutComment);
         }
+
     }
 }

@@ -20,7 +20,7 @@ namespace COMP1640WebAPI.DataAccess.Data
         public DbSet<COMP1640WebAPI.DataAccess.Models.GuessAccounts> GuessAccounts { get; set; } = default!;
         public DbSet<COMP1640WebAPI.DataAccess.Models.Contributions> Contributions { get; set; }
         public DbSet<COMP1640WebAPI.DataAccess.Models.Coordinators> Coordinators { get; set; }
-        public DbSet<COMP1640WebAPI.DataAccess.Models.AcademicYear> AcademicYears { get; set; }
+        public DbSet<COMP1640WebAPI.DataAccess.Models.AcademicYears> AcademicYears { get; set; }
         public DbSet<COMP1640WebAPI.DataAccess.Models.ContributionsDates> ContributionsDates { get; set; }
         public DbSet<Messages> Messages { get; set; }
     }

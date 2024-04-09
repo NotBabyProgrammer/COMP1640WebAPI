@@ -4,6 +4,5 @@
     {
         // functions for Coordinator
         public bool? approval { get; set; }
-        public string? comments { get; set; }
     }
 }
