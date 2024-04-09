@@ -1,10 +1,13 @@
-﻿namespace COMP1640WebAPI.DataAccess.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace COMP1640WebAPI.DataAccess.Models
 {
     public class Messages
     {
-        public int messageId {  get; set; }
-        public int sendId { get; set; }
+        [Key]
+        public int messageId { get; set; }
+        public int senderId { get; set; }
         public int receiverId { get; set; }
-        public string? message { get; set; }
+        public List<string>? message { get; set; }
     }
 }

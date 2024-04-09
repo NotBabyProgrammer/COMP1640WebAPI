@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using COMP1640WebAPI.DataAccess.Data;
 using COMP1640WebAPI.DataAccess.Models;
 using COMP1640WebAPI.BusinesLogic.DTO;
+using System.Net.Mime;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -120,7 +121,6 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-
         // DELETE: api/Coordinators/5
         [HttpDelete("{userId}")]
         public async Task<IActionResult> DeleteCoordinators(int userId)
@@ -138,7 +138,6 @@ namespace COMP1640WebAPI.API.Controllers
 
             return NoContent();
         }
-
         private bool CoordinatorsExists(int id)
         {
             return _context.Coordinators.Any(e => e.coordinatorId == id);
