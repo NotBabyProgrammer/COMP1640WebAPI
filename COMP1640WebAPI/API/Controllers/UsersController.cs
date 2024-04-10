@@ -46,13 +46,13 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Invalid username or password.");
             }
 
-            var roleId = existingUser.roleId;
             var accessToken = _repository.GenerateAccessToken(existingUser); // Implement this method to generate access token
 
             var response = new
             {
                 UserId = existingUser.userId,
-                RoleId = roleId,
+                RoleId = existingUser.roleId,
+                UserName = existingUser.userName,
                 AccessToken = accessToken
             };
 

@@ -40,15 +40,18 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         // GET: api/Contributions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Contributions>> GetContributions(int id)
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsByUserId(int userId)
         {
-            var contributions = await _context.Contributions.FindAsync(id);
+            var contributions = await _context.Contributions
+                                            .Where(c => c.userId == userId)
+                                            .ToListAsync();
 
-            if (contributions == null)
+            if (contributions == null || !contributions.Any())
             {
                 return NotFound();
             }
+
             return contributions;
         }
         // PUT: api/Contributions/Review/5
