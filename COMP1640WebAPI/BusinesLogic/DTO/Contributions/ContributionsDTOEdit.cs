@@ -3,6 +3,5 @@
     public class ContributionsDTOEdit
     {
         public string? title {  get; set; }
-        public int userId { get; set; }
     }
 }

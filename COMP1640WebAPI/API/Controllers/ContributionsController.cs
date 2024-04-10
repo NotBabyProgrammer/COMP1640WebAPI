@@ -186,6 +186,7 @@ namespace COMP1640WebAPI.API.Controllers
         public IActionResult CommentContributions(int id, ContributionsDTOComment contributionsDTO)
         {
             var contributions = _context.Contributions.FirstOrDefault(c => c.contributionId == id);
+            var user =_context.Users.FirstOrDefault(u => u.userName == contributionsDTO.userName);
             if (contributions == null)
             {
                 return NotFound("Contribution not found.");
@@ -197,6 +198,18 @@ namespace COMP1640WebAPI.API.Controllers
             }
 
             string comment = $"{contributionsDTO.userName} commented: {contributionsDTO.commentions}";
+            if (user.roleId == 1)
+            {
+                contributions.status = "New";
+            }
+            else if (user.roleId == 3)
+            {
+                contributions.status = "Reviewed";
+            }
+            else
+            {
+                return NotFound();
+            }
             contributions.commentions.Add(comment);
             _context.SaveChanges();
 
