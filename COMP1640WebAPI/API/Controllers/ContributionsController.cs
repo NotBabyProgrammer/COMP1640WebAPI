@@ -368,7 +368,7 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpGet("DownloadSelected/{contributionId}")]
         public async Task<IActionResult> DownloadSelected(int contributionId)
         {
-            // only download APPROVED contributions
+            // only download APPROVED contributions (choose 1 contribution ID to download)
             var contribution = await _context.Contributions.FindAsync(contributionId);
             if (contribution == null)
             {
@@ -407,6 +407,49 @@ namespace COMP1640WebAPI.API.Controllers
 
                 // also response contribution title, contribution id 
                 return File(memoryStream.ToArray(), "application/zip", $"{contributionId}.zip");
+            }
+        }
+
+        [HttpGet("DownloadAllSelected")]
+        public IActionResult DownloadAllSelected()
+        {
+            var folderPath = Path.Combine(_environment.ContentRootPath, "API", "Upload", "Selected");
+            if (!Directory.Exists(folderPath))
+            {
+                return NotFound("Selected folder not found!");
+            }
+
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    AddFolderToZip(zipArchive, folderPath);
+                }
+
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                return File(memoryStream.ToArray(), "application/zip", "AllApprovedContributions.zip");
+            }
+        }
+
+        private void AddFolderToZip(ZipArchive zipArchive, string folderPath)
+        {
+            foreach (var file in Directory.GetFiles(folderPath))
+            {
+                var fileInfo = new FileInfo(file);
+                var entry = zipArchive.CreateEntry(Path.GetFileName(fileInfo.FullName));
+                using (var entryStream = entry.Open())
+                {
+                    using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read))
+                    {
+                        fileStream.CopyTo(entryStream);
+                    }
+                }
+            }
+
+            foreach (var subFolder in Directory.GetDirectories(folderPath))
+            {
+                AddFolderToZip(zipArchive, subFolder);
             }
         }
 
