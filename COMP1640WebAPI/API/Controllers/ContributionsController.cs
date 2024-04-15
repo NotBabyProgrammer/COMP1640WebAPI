@@ -172,13 +172,21 @@ namespace COMP1640WebAPI.API.Controllers
                 filesCount++;
                 imagePaths.Add(await WriteFile(filesCount, image, contributionsDTO.title));
             }
+
             contributions.title = contributionsDTO.title;
             contributions.filePaths = filePaths;
             contributions.imagePaths = imagePaths;
             contributions.status = "New";
+
+            var query = new
+            {
+                title = contributions.title,
+                filePaths = contributions.filePaths,
+                imagePaths = contributions.imagePaths
+            };
             _context.Entry(contributions).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(query);
         }
 
         //PUT: api/Contributions/Comment/5
@@ -293,6 +301,7 @@ namespace COMP1640WebAPI.API.Controllers
                     filesCount++;
                     imagePaths.Add(await WriteFile(filesCount, image, contributionsDTO.title));
                 }
+                List<string> comments = new List<string> {};
 
                 var contributions = new Contributions
                 {
@@ -306,6 +315,7 @@ namespace COMP1640WebAPI.API.Controllers
                     status = "New",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
+                    commentions = comments,
                     academicYearId = 1
                 };
 
