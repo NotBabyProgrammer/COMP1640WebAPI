@@ -54,6 +54,7 @@ namespace COMP1640WebAPI.API.Controllers
 
             return contributions;
         }
+        
         // PUT: api/Contributions/Review/5
         [HttpPut("Review/{id}")]
         public async Task<IActionResult> ReviewContributions(int id, ContributionsDTOReview contributionsDTO)
@@ -224,7 +225,6 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-
         // POST: api/Contributions/AddArticles
         [HttpPost("AddArticles")]
         public async Task<ActionResult<Contributions>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
@@ -375,8 +375,8 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         //GET: api/Contributions/Download/5
-        [HttpGet("DownloadSelected/{contributionId}")]
-        public async Task<IActionResult> DownloadSelected(int contributionId)
+        [HttpGet("Download/{contributionId}")]
+        public async Task<IActionResult> Download(int contributionId)
         {
             // only download APPROVED contributions (choose 1 contribution ID to download)
             var contribution = await _context.Contributions.FindAsync(contributionId);
@@ -386,14 +386,21 @@ namespace COMP1640WebAPI.API.Controllers
             }
 
             var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.contributionId}");
+            var newfolerPath = "";
             if (!Directory.Exists(folderPath))
             {
-                return NotFound("Contribution not found!");
+                newfolerPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\{contribution.contributionId}");
+                folderPath = newfolerPath;
+            }
+
+            if (!Directory.Exists(folderPath))
+            {
+                return NotFound("Contribution not found2!");
             }
             var files = Directory.GetFiles(folderPath);
             if (files.Length == 0)
             {
-                return NotFound("Contribution not found!");
+                return NotFound("Contribution not found3!");
             }
 
             using (var memoryStream = new MemoryStream())
@@ -433,21 +440,22 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
-                    AddFolderToZip(zipArchive, folderPath);
+                    AddFolderToZip(zipArchive, folderPath, "Selected");
                 }
 
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
-                return File(memoryStream.ToArray(), "application/zip", "AllApprovedContributions.zip");
+                return File(memoryStream.ToArray(), "application/zip", "AllSelectedContents.zip");
             }
         }
 
-        private void AddFolderToZip(ZipArchive zipArchive, string folderPath)
+        private void AddFolderToZip(ZipArchive zipArchive, string folderPath, string parentFolderName)
         {
+            // Add files in the current folder to the zip archive
             foreach (var file in Directory.GetFiles(folderPath))
             {
                 var fileInfo = new FileInfo(file);
-                var entry = zipArchive.CreateEntry(Path.GetFileName(fileInfo.FullName));
+                var entry = zipArchive.CreateEntry($"{parentFolderName}/{Path.GetFileName(fileInfo.FullName)}");
                 using (var entryStream = entry.Open())
                 {
                     using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read))
@@ -457,9 +465,11 @@ namespace COMP1640WebAPI.API.Controllers
                 }
             }
 
+            // Recursively add subfolders and their contents to the zip archive
             foreach (var subFolder in Directory.GetDirectories(folderPath))
             {
-                AddFolderToZip(zipArchive, subFolder);
+                var subFolderName = Path.GetFileName(subFolder);
+                AddFolderToZip(zipArchive, subFolder, $"{parentFolderName}/{subFolderName}");
             }
         }
 
