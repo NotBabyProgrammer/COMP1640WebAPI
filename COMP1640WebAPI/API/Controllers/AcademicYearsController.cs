@@ -44,10 +44,10 @@ namespace COMP1640WebAPI.API.Controllers
 
         // PUT: api/AcademicYears/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAcademicYear(int id, AcademicYears academicYear)
+        [HttpPut("{academicYearsId}")]
+        public async Task<IActionResult> PutAcademicYear(int academicYearsId, AcademicYears academicYear)
         {
-            if (id != academicYear.Id)
+            if (academicYearsId != academicYear.academicYearsId)
             {
                 return BadRequest();
             }
@@ -60,7 +60,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AcademicYearExists(id))
+                if (!AcademicYearExists(academicYearsId))
                 {
                     return NotFound();
                 }
@@ -78,15 +78,32 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpPost]
         public async Task<ActionResult<AcademicYears>> PostAcademicYear(AcademicYears academicYear)
         {
-            if ((academicYear.endYear - academicYear.startYear).Value.TotalDays > 11 * 30)
+            if (!academicYear.startDays.HasValue || !academicYear.endDays.HasValue || !academicYear.finalEndDays.HasValue)
             {
-                return BadRequest("End date must not be more than 11 months after the start date.");
+                return BadRequest("Start date, end date, and final end date are required.");
+            }
+
+            var startDate = new DateTime(academicYear.startDays.Value.Year, academicYear.startDays.Value.Month, academicYear.startDays.Value.Day);
+            var endDate = new DateTime(academicYear.endDays.Value.Year, academicYear.endDays.Value.Month, academicYear.endDays.Value.Day);
+            var finalEndDate = new DateTime(academicYear.finalEndDays.Value.Year, academicYear.finalEndDays.Value.Month, academicYear.finalEndDays.Value.Day);
+
+            var diff1 = (endDate - startDate).TotalDays;
+            var diff2 = (finalEndDate - endDate).TotalDays;
+
+            if (diff1 < 30)
+            {
+                return BadRequest("End date must be 1 month or more after the start date.");
+            }
+
+            if (diff2 < 7)
+            {
+                return BadRequest("Final end date must be 1 week or more after the end date.");
             }
 
             _context.AcademicYears.Add(academicYear);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAcademicYear", new { id = academicYear.Id }, academicYear);
+            return CreatedAtAction("GetAcademicYear", new { id = academicYear.academicYearsId, startDays = academicYear.startDays, endDays = academicYear.endDays, finalEndDays = academicYear.finalEndDays }, academicYear);
         }
 
         // DELETE: api/AcademicYears/5
@@ -107,7 +124,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         private bool AcademicYearExists(int id)
         {
-            return _context.AcademicYears.Any(e => e.Id == id);
+            return _context.AcademicYears.Any(e => e.academicYearsId == id);
         }
     }
 }

@@ -4,6 +4,7 @@ using COMP1640WebAPI.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace COMP1640WebAPI.Migrations
 {
     [DbContext(typeof(COMP1640WebAPIContext))]
-    partial class COMP1640WebAPIContextModelSnapshot : ModelSnapshot
+    [Migration("20240416202246_UpdateAcademicYears")]
+    partial class UpdateAcademicYears
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,22 +27,19 @@ namespace COMP1640WebAPI.Migrations
 
             modelBuilder.Entity("COMP1640WebAPI.DataAccess.Models.AcademicYears", b =>
                 {
-                    b.Property<int>("academicYearsId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("academicYearsId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("endDays")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("endDay")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime?>("finalEndDays")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("startDay")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime?>("startDays")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("academicYearsId");
+                    b.HasKey("Id");
 
                     b.ToTable("AcademicYears");
                 });

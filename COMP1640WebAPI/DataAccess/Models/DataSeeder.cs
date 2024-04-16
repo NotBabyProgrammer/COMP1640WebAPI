@@ -1,4 +1,5 @@
 ﻿using COMP1640WebAPI.DataAccess.Data;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace COMP1640WebAPI.DataAccess.Models
 {
@@ -81,7 +82,7 @@ namespace COMP1640WebAPI.DataAccess.Models
             {
                 var aca = new List<AcademicYears>
                 {
-                    new AcademicYears {startYear = new DateTime(2024, 08, 10), endYear = new DateTime(2024, 05, 25)}
+                    new AcademicYears {startDays = new DateTime(2024, 03, 10), endDays = new DateTime(2024, 05, 10), finalEndDays = new DateTime(2024, 05, 30)}
                 };
                 _context.AcademicYears.AddRange(aca);
                 _context.SaveChanges();
