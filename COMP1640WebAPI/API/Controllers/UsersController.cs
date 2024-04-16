@@ -45,7 +45,6 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound("Invalid username or password.");
             }
-            var faculty = await _repository.GetFacultyByIdAsync(existingUser.facultyId);
             var accessToken = _repository.GenerateAccessToken(existingUser); // Implement this method to generate access token
 
             var response = new
@@ -53,7 +52,7 @@ namespace COMP1640WebAPI.API.Controllers
                 UserId = existingUser.userId,
                 RoleId = existingUser.roleId,
                 UserName = existingUser.userName,
-                FacultyName = faculty.facultyName,
+                FacultyName = existingUser.facultyName,
                 AccessToken = accessToken
             };
 
@@ -63,10 +62,10 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<Users>> Register(UsersDTOPost user)
         {
-            var faculty = await _repository.GetFacultyByIdAsync(user.facultyId);
+            var faculty = await _repository.GetFacultyByNameAsync(user.facultyName);
             if (faculty == null)
             {
-                return NotFound("Faculty ID not found.");
+                return NotFound("Faculty name not found.");
             }
 
             if (await _repository.IsUsernameExistsAsync(user.userName))
@@ -78,27 +77,51 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 userName = user.userName,
                 password = user.password,
-                facultyId = user.facultyId,
+                facultyName = user.facultyName,
                 roleId = 1 //Hardcoded roleId to 1
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
         }
 
-        // POST: api/Users/AddManager
-        [HttpPost("AddManager")]
+        [HttpGet("{userId}/notifications")]
+        public async Task<ActionResult<IEnumerable<string>>> GetUserNotifications(int userId)
+        {
+            var notifications = await _repository.GetUserNotifications(userId);
+            var response = new
+            {
+                userId = userId,
+                notifications = notifications
+            };
+            return Ok(response);
+        }
+
+
+        // POST: api/Users/AddManagerAndCoordinator
+        [HttpPost("AddManagerAndCoordinator")]
         [Authorize]
-        public async Task<ActionResult<Users>> AddManager(UsersDTOPost user)
+        public async Task<ActionResult<Users>> AddManagerAndCoordinator(UsersDTOAddMMMC user)
         {
             if (await _repository.IsUsernameExistsAsync(user.userName))
             {
                 return Conflict("Username existing.");
             }
+
+            if (user.roleId == 3 && user.facultyName == "None")
+            {
+                return BadRequest("Marketing Coordinator must be in a faculty!");
+            }
+
+            if (user.roleId == 2 && user.facultyName != "None")
+            {
+                return BadRequest("Manager must not be in a faculty!");
+            }
             var newUser = new Users
             {
                 userName = user.userName,
                 password = user.password,
-                roleId = 2 //Hardcoded roleId to 1
+                roleId = user.roleId,
+                facultyName = user.facultyName
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);

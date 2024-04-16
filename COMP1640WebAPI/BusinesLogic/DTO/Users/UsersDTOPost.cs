@@ -4,6 +4,6 @@
     {
         public string? userName { get; set; }
         public string? password { get; set; }
-        public int facultyId { get; set; }
+        public string? facultyName { get; set; }
     }
 }

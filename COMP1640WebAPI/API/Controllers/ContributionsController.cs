@@ -195,6 +195,24 @@ namespace COMP1640WebAPI.API.Controllers
                 imagePaths = contributions.imagePaths
             };
             _context.Entry(contributions).State = EntityState.Modified;
+
+            var users = await _context.Users
+                    .Where(u => u.roleId == 3 && u.facultyName == contributions.facultyName)
+                    .ToListAsync();
+
+            foreach (var u in users)
+            {
+                if (u != null)
+                {
+                    // Send notification to all Coordinators in the faculty
+                    if (u.notifications == null)
+                    {
+                        u.notifications = new List<string>();
+                    }
+
+                    u.notifications.Add($"Student with ID {contributions.userId} just edited his/her contribution.");
+                }
+            }
             await _context.SaveChangesAsync();
             return Ok(query);
         }
@@ -250,17 +268,12 @@ namespace COMP1640WebAPI.API.Controllers
                 //var acaYearExists = await _context.AcademicYears.AnyAsync(aca => aca.Id == contributionsDTO.academicYearId);
                 var contributionsDate = await _context.ContributionsDates.FirstOrDefaultAsync();
 
-                var facultyId = await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == contributionsDTO.facultyName);
+                //var facultyId = await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == contributionsDTO.facultyName);
                 if (contributionsDate == null)
                 {
                     // Handle the case where no ContributionsDate is found
                     return NotFound("No ContributionsDate found.");
                 }
-
-                //if (!acaYearExists)
-                //{
-                //    return NotFound("Academic Year does not exist.");
-                //}
 
                 if (!facultyExists)
                 {
@@ -322,7 +335,7 @@ namespace COMP1640WebAPI.API.Controllers
                     submissionDate = DateTime.Now,
                     approvalDate = DateTime.Now.AddDays(14),
                     endDate = contributionsDate.finalEndDate,
-                    status = "New",
+                    status = "Pending",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     commentions = comments,
@@ -341,14 +354,14 @@ namespace COMP1640WebAPI.API.Controllers
 
                 _context.Contributions.Add(contributions);
                 var users = await _context.Users
-                    .Where(u => u.roleId == 3 && u.facultyId == facultyId.facultyId)
+                    .Where(u => u.roleId == 3 && u.facultyName == contributionsDTO.facultyName)
                     .ToListAsync();
 
                 foreach (var u in users)
                 {
                     if (u != null)
                     {
-                        // Ensure notifications list is initialized
+                        // Send notification to all Coordinators in the faculty
                         if (u.notifications == null)
                         {
                             u.notifications = new List<string>();
@@ -368,10 +381,10 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         // DELETE: api/Contributions/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteContributions(int id)
+        [HttpDelete("ResitArticles")]
+        public async Task<IActionResult> DeleteContributions(ContributionsDTODelete contributionsDTO)
         {
-            var contributions = await _context.Contributions.FindAsync(id);
+            var contributions = await _context.Contributions.FindAsync(contributionsDTO.contributionId);
             if (contributions == null)
             {
                 return NotFound();
@@ -382,7 +395,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 if (!string.IsNullOrEmpty(filePath))
                 {
-                    DeleteFile(filePath, id);
+                    DeleteFile(filePath, contributionsDTO.contributionId);
                 }
             }
 
@@ -390,12 +403,21 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 if (!string.IsNullOrEmpty(imagePath))
                 {
-                    DeleteFile(imagePath, id);
+                    DeleteFile(imagePath, contributionsDTO.contributionId);
                 }
             }
 
             // Remove contribution from the database
             _context.Contributions.Remove(contributions);
+            var users = await _context.Users.FindAsync(contributions.userId);
+
+            // Send notification to student
+            if (users.notifications == null)
+            {
+                users.notifications = new List<string>();
+            }
+
+            users.notifications.Add($"Your contribution has been remove by Coordinator {contributionsDTO.coordinatorId}");
             await _context.SaveChangesAsync();
 
             return NoContent();

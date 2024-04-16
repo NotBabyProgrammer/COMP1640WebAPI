@@ -51,17 +51,17 @@ namespace COMP1640WebAPI.DataAccess.Models
             {
                 var users = new List<Users>()
                 {
-                    new Users { userName = "Student1", password = "secret123", roleId = 1, facultyId = 1 },
-                    new Users { userName = "Student2", password = "secret123", roleId = 1, facultyId = 2 },
-                    new Users { userName = "Student3", password = "secret123", roleId = 1, facultyId = 3 },
-                    new Users { userName = "Manager", password = "secret123", roleId = 2, facultyId = 4 },
-                    new Users { userName = "Coordinator1", password = "secret123", roleId = 3, facultyId = 1 },
-                    new Users { userName = "Coordinator2", password = "secret123", roleId = 3, facultyId = 2  },
-                    new Users { userName = "Coordinator3", password = "secret123", roleId = 3, facultyId = 3 },
-                    new Users { userName = "Admin", password = "secret123", roleId = 4, facultyId = 4 },
-                    new Users { userName = "Guess1", password = "secret123", roleId = 5, facultyId = 1 },
-                    new Users { userName = "Guess2", password = "secret123", roleId = 5, facultyId = 2 },
-                    new Users { userName = "Guess3", password = "secret123", roleId = 5, facultyId = 3 }
+                    new Users { userName = "Student1", password = "secret123", roleId = 1, facultyName = "Computer Science"},
+                    new Users { userName = "Student2", password = "secret123", roleId = 1, facultyName = "Business Administration" },
+                    new Users { userName = "Student3", password = "secret123", roleId = 1, facultyName = "Graphic Design" },
+                    new Users { userName = "Manager", password = "secret123", roleId = 2, facultyName = "None" },
+                    new Users { userName = "Coordinator1", password = "secret123", roleId = 3, facultyName = "Computer Science" },
+                    new Users { userName = "Coordinator2", password = "secret123", roleId = 3, facultyName = "Business Administration"  },
+                    new Users { userName = "Coordinator3", password = "secret123", roleId = 3, facultyName = "Graphic Design" },
+                    new Users { userName = "Admin", password = "secret123", roleId = 4, facultyName = "None" },
+                    new Users { userName = "Guess1", password = "secret123", roleId = 5, facultyName = "Computer Science" },
+                    new Users { userName = "Guess2", password = "secret123", roleId = 5, facultyName = "Business Administration" },
+                    new Users { userName = "Guess3", password = "secret123", roleId = 5, facultyName = "Graphic Design" }
                 };
                 _context.Users.AddRange(users);
                 _context.SaveChanges();

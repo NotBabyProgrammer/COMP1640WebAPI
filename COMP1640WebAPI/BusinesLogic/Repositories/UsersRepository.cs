@@ -38,10 +38,34 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         {
             return await _context.Users.AnyAsync(u => u.userName == username);
         }
-        public async Task<Faculties> GetFacultyByIdAsync(int facultyId)
+        public async Task<Faculties> GetFacultyByNameAsync(string facultyName)
         {
-            return await _context.Faculties.FirstOrDefaultAsync(f => f.facultyId == facultyId);
+            return await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == facultyName);
         }
+
+        public async Task<List<string>> GetUserNotifications(int userId)
+        {
+            // Find the user by userId
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                // Handle the case where user is not found
+                return null;
+            }
+
+            // Ensure notifications list is initialized
+            if (user.notifications == null)
+            {
+                user.notifications = new List<string>();
+            }
+
+            // Order the notifications in descending order
+            var orderedNotifications = user.notifications.OrderByDescending(n => n).ToList();
+
+            return orderedNotifications;
+        }
+
         public async Task AddUserAsync(Users user)
         {
             _context.Users.Add(user);
