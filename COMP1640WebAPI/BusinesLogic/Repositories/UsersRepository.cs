@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.AspNetCore.Http.HttpResults;
+using NuGet.Protocol.Plugins;
 
 namespace COMP1640WebAPI.BusinesLogic.Repositories
 {
@@ -36,6 +37,10 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         public async Task<bool> IsUsernameExistsAsync(string username)
         {
             return await _context.Users.AnyAsync(u => u.userName == username);
+        }
+        public async Task<Faculties> GetFacultyByIdAsync(int facultyId)
+        {
+            return await _context.Faculties.FirstOrDefaultAsync(f => f.facultyId == facultyId);
         }
         public async Task AddUserAsync(Users user)
         {

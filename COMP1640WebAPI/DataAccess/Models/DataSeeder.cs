@@ -18,7 +18,8 @@ namespace COMP1640WebAPI.DataAccess.Models
                     new Roles { roleName = "Student" },
                     new Roles { roleName = "Manager" },
                     new Roles { roleName = "Coordinator" },
-                    new Roles { roleName = "Admin" }
+                    new Roles { roleName = "Admin" },
+                    new Roles {roleName = "Guess"}
                 };
                 _context.Roles.AddRange(roles);
                 _context.SaveChanges();
@@ -29,7 +30,8 @@ namespace COMP1640WebAPI.DataAccess.Models
                 {
                     new Faculties { facultyName = "Computer Science" },
                     new Faculties { facultyName = "Business Administration" },
-                    new Faculties { facultyName = "Graphic Design" }
+                    new Faculties { facultyName = "Graphic Design" },
+                    new Faculties { facultyName = "None"}
                 };
                 _context.Faculties.AddRange(faculties);
                 _context.SaveChanges();
@@ -49,12 +51,17 @@ namespace COMP1640WebAPI.DataAccess.Models
             {
                 var users = new List<Users>()
                 {
-                    new Users { userName = "Student", password = "secret123", roleId = 1 },
-                    new Users { userName = "Manager", password = "secret123", roleId = 2 },
-                    new Users { userName = "Coordinator 1", password = "secret123", roleId = 3 },
-                    new Users { userName = "Admin", password = "secret123", roleId = 4 },
-                    new Users { userName = "Coordinator 2", password = "secret123", roleId = 3 },
-                    new Users { userName = "Coordinator 3", password = "secret123", roleId = 3 }
+                    new Users { userName = "Student1", password = "secret123", roleId = 1, facultyId = 1 },
+                    new Users { userName = "Student2", password = "secret123", roleId = 1, facultyId = 2 },
+                    new Users { userName = "Student3", password = "secret123", roleId = 1, facultyId = 3 },
+                    new Users { userName = "Manager", password = "secret123", roleId = 2, facultyId = 4 },
+                    new Users { userName = "Coordinator1", password = "secret123", roleId = 3, facultyId = 1 },
+                    new Users { userName = "Coordinator2", password = "secret123", roleId = 3, facultyId = 2  },
+                    new Users { userName = "Coordinator3", password = "secret123", roleId = 3, facultyId = 3 },
+                    new Users { userName = "Admin", password = "secret123", roleId = 4, facultyId = 4 },
+                    new Users { userName = "Guess1", password = "secret123", roleId = 5, facultyId = 1 },
+                    new Users { userName = "Guess2", password = "secret123", roleId = 5, facultyId = 2 },
+                    new Users { userName = "Guess3", password = "secret123", roleId = 5, facultyId = 3 }
                 };
                 _context.Users.AddRange(users);
                 _context.SaveChanges();

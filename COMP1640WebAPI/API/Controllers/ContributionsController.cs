@@ -14,6 +14,7 @@ using System.IO.Compression;
 using System.Net.Mime;
 using COMP1640WebAPI.BusinesLogic.DTO.Contributions;
 using NuGet.Packaging;
+using NuGet.Protocol.Core.Types;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -71,16 +72,11 @@ namespace COMP1640WebAPI.API.Controllers
                 if (contributionsDTO.approval == null)
                 {
                     return BadRequest("Nullable object must have a value");
-                }
-
-                //if (contributions.approval == null)
-                //{
-                //    return BadRequest("Nullable object must have a value");
-                //}
+                }                
 
                 if (contributions.approval == false && contributionsDTO.approval == true)
                 {
-                    // Move files to the specified directory
+                    // Move files to the selected folder
                     foreach (var filePath in contributions.filePaths)
                     {
                         MoveFile(filePath, $"{id}", true);
@@ -94,7 +90,7 @@ namespace COMP1640WebAPI.API.Controllers
                 }
                 else if (contributions.approval == true && contributionsDTO.approval == false)
                 {
-                    // Move files to the specified directory
+                    // Move files out of the selected folder
                     foreach (var filePath in contributions.filePaths)
                     {
                         MoveFile(filePath, $"{id}", false);
@@ -109,7 +105,14 @@ namespace COMP1640WebAPI.API.Controllers
 
                 // Update properties if provided in the DTO
                 contributions.approval = contributionsDTO.approval;
-                contributions.status = "Reviewed";
+                if (contributions.approval == true)
+                {
+                    contributions.status = "Accepted";
+                }
+                else if (contributions.approval == false)
+                {
+                    contributions.status = "Rejected";
+                }
                 _context.Entry(contributions).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
@@ -129,6 +132,12 @@ namespace COMP1640WebAPI.API.Controllers
             List<string> filePaths = new List<string>();
             List<string> imagePaths = new List<string>();
             int filesCount = 0;
+
+            if (contributions.status == "Rejected")
+            {
+                return BadRequest("Cannot edit contribution (already being rejected)");
+            }
+
             if (contributionsDTO.title == null)
             {
                 return BadRequest("Title is null");
@@ -177,7 +186,7 @@ namespace COMP1640WebAPI.API.Controllers
             contributions.title = contributionsDTO.title;
             contributions.filePaths = filePaths;
             contributions.imagePaths = imagePaths;
-            contributions.status = "New";
+            contributions.status = "Pending...";
 
             var query = new
             {
@@ -241,6 +250,7 @@ namespace COMP1640WebAPI.API.Controllers
                 //var acaYearExists = await _context.AcademicYears.AnyAsync(aca => aca.Id == contributionsDTO.academicYearId);
                 var contributionsDate = await _context.ContributionsDates.FirstOrDefaultAsync();
 
+                var facultyId = await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == contributionsDTO.facultyName);
                 if (contributionsDate == null)
                 {
                     // Handle the case where no ContributionsDate is found
@@ -330,6 +340,23 @@ namespace COMP1640WebAPI.API.Controllers
                 }
 
                 _context.Contributions.Add(contributions);
+                var users = await _context.Users
+                    .Where(u => u.roleId == 3 && u.facultyId == facultyId.facultyId)
+                    .ToListAsync();
+
+                foreach (var u in users)
+                {
+                    if (u != null)
+                    {
+                        // Ensure notifications list is initialized
+                        if (u.notifications == null)
+                        {
+                            u.notifications = new List<string>();
+                        }
+
+                        u.notifications.Add($"Student with ID {contributionsDTO.userId} just submitted a contribution.");
+                    }
+                }
                 await _context.SaveChangesAsync();
 
                 return CreatedAtAction("GetContributions", new { id = contributions.contributionId }, contributions);
@@ -374,59 +401,86 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-        //GET: api/Contributions/Download/5
+        // GET: api/Download/5
         [HttpGet("Download/{contributionId}")]
         public async Task<IActionResult> Download(int contributionId)
         {
-            // only download APPROVED contributions (choose 1 contribution ID to download)
-            var contribution = await _context.Contributions.FindAsync(contributionId);
-            if (contribution == null)
+            try
             {
-                return NotFound("Contribution not found!");
-            }
-
-            var folderPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\Selected\\{contribution.contributionId}");
-            var newfolerPath = "";
-            if (!Directory.Exists(folderPath))
-            {
-                newfolerPath = Path.Combine(_environment.ContentRootPath, $"API\\Upload\\{contribution.contributionId}");
-                folderPath = newfolerPath;
-            }
-
-            if (!Directory.Exists(folderPath))
-            {
-                return NotFound("Contribution not found2!");
-            }
-            var files = Directory.GetFiles(folderPath);
-            if (files.Length == 0)
-            {
-                return NotFound("Contribution not found3!");
-            }
-
-            using (var memoryStream = new MemoryStream())
-            {
-                using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                var contribution = await _context.Contributions.FindAsync(contributionId);
+                if (contribution == null)
                 {
-                    foreach (var file in files)
+                    return NotFound("Contribution not found!");
+                }
+
+                var files = contribution.filePaths;
+                var images = contribution.imagePaths;
+                var folderPath = Path.Combine(_environment.ContentRootPath, "API", "Upload");
+
+                // Check if files and images are not found in the regular paths
+                if ((files == null || files.Count == 0 || !files.All(file => System.IO.File.Exists(Path.Combine(folderPath, file)))) &&
+                    (images == null || images.Count == 0 || !images.All(image => System.IO.File.Exists(Path.Combine(folderPath, image)))))
+                {
+                    // Search in backup path
+                    folderPath = Path.Combine(folderPath, "Selected", contributionId.ToString());
+                    if ((files == null || files.Count == 0 || !files.All(file => System.IO.File.Exists(Path.Combine(folderPath, file)))) &&
+                       (images == null || images.Count == 0 || !images.All(image => System.IO.File.Exists(Path.Combine(folderPath, image)))))
                     {
-                        var fileInfo = new FileInfo(file);
-                        var entry = zipArchive.CreateEntry(fileInfo.Name);
-                        using (var entryStream = entry.Open())
+                        return NotFound("Contribution not found2.");
+                    }
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        // Add files to zip archive
+                        foreach (var file in files)
                         {
-                            using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                            var filePath = Path.Combine(folderPath, file);
+                            if (System.IO.File.Exists(filePath))
                             {
-                                fileStream.CopyTo(entryStream);
+                                var entry = zipArchive.CreateEntry($"{Path.GetFileName(filePath)}");
+                                using (var entryStream = entry.Open())
+                                {
+                                    using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                                    {
+                                        fileStream.CopyTo(entryStream);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Add images to zip archive
+                        foreach (var image in images)
+                        {
+                            var imagePath = Path.Combine(folderPath, image);
+                            if (System.IO.File.Exists(imagePath))
+                            {
+                                var entry = zipArchive.CreateEntry($"{Path.GetFileName(imagePath)}");
+                                using (var entryStream = entry.Open())
+                                {
+                                    using (var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
+                                    {
+                                        fileStream.CopyTo(entryStream);
+                                    }
+                                }
                             }
                         }
                     }
-                }
-                memoryStream.Seek(0, SeekOrigin.Begin);
 
-                // also response contribution title, contribution id 
-                return File(memoryStream.ToArray(), "application/zip", $"{contributionId}.zip");
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+
+                    return File(memoryStream.ToArray(), "application/zip", $"Contribution_{contributionId}_Files.zip");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
 
+        //GET: api//DownloadAllSelected/5
         [HttpGet("DownloadAllSelected")]
         public IActionResult DownloadAllSelected()
         {

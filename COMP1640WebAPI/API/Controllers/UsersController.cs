@@ -45,7 +45,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound("Invalid username or password.");
             }
-
+            var faculty = await _repository.GetFacultyByIdAsync(existingUser.facultyId);
             var accessToken = _repository.GenerateAccessToken(existingUser); // Implement this method to generate access token
 
             var response = new
@@ -53,6 +53,7 @@ namespace COMP1640WebAPI.API.Controllers
                 UserId = existingUser.userId,
                 RoleId = existingUser.roleId,
                 UserName = existingUser.userName,
+                FacultyName = faculty.facultyName,
                 AccessToken = accessToken
             };
 
@@ -62,6 +63,33 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<Users>> Register(UsersDTOPost user)
         {
+            var faculty = await _repository.GetFacultyByIdAsync(user.facultyId);
+            if (faculty == null)
+            {
+                return NotFound("Faculty ID not found.");
+            }
+
+            if (await _repository.IsUsernameExistsAsync(user.userName))
+            {
+                return Conflict("Username existing.");
+            }
+
+            var newUser = new Users
+            {
+                userName = user.userName,
+                password = user.password,
+                facultyId = user.facultyId,
+                roleId = 1 //Hardcoded roleId to 1
+            };
+            await _repository.AddUserAsync(newUser);
+            return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
+        }
+
+        // POST: api/Users/AddManager
+        [HttpPost("AddManager")]
+        [Authorize]
+        public async Task<ActionResult<Users>> AddManager(UsersDTOPost user)
+        {
             if (await _repository.IsUsernameExistsAsync(user.userName))
             {
                 return Conflict("Username existing.");
@@ -70,11 +98,12 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 userName = user.userName,
                 password = user.password,
-                roleId = 1 // Hardcoded roleId to 1
+                roleId = 2 //Hardcoded roleId to 1
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
         }
+
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize]
@@ -99,6 +128,7 @@ namespace COMP1640WebAPI.API.Controllers
             await _repository.UpdateUserAsync(userToUpdate);
             return NoContent();
         }
+        
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [Authorize]
