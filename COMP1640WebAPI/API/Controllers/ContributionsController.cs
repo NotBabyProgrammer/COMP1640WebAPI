@@ -55,7 +55,22 @@ namespace COMP1640WebAPI.API.Controllers
 
             return contributions;
         }
-        
+
+        [HttpGet("GetContributionsByFaculty")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsByFaculty(string facultyName)
+        {
+            var contributions = await _context.Contributions
+                                            .Where(c => c.facultyName == facultyName)
+                                            .ToListAsync();
+
+            if (contributions == null || !contributions.Any())
+            {
+                return NotFound();
+            }
+
+            return contributions;
+        }
+
         // PUT: api/Contributions/Review/5
         [HttpPut("Review/{id}")]
         public async Task<IActionResult> ReviewContributions(int id, ContributionsDTOReview contributionsDTO)
@@ -132,6 +147,13 @@ namespace COMP1640WebAPI.API.Controllers
             List<string> filePaths = new List<string>();
             List<string> imagePaths = new List<string>();
             int filesCount = 0;
+
+            DateTime editTime = DateTime.Now;
+
+            if (editTime > contributions.endDate)
+            {
+                return BadRequest("Cannot edit after the final closure date");
+            }
 
             if (contributions.status == "Rejected")
             {
@@ -263,16 +285,21 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("There are null objects");
                 }
 
+                DateTime submitDate = DateTime.Now;
+                
                 // Check if FacultyName exists in the Faculties table
                 var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
-                //var acaYearExists = await _context.AcademicYears.AnyAsync(aca => aca.Id == contributionsDTO.academicYearId);
-                var contributionsDate = await _context.ContributionsDates.FirstOrDefaultAsync();
 
-                //var facultyId = await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == contributionsDTO.facultyName);
-                if (contributionsDate == null)
+                var acaYearExists = await _context.AcademicYears.FindAsync(contributionsDTO.academicYearsId);
+
+                if (submitDate < acaYearExists.startDays)
                 {
-                    // Handle the case where no ContributionsDate is found
-                    return NotFound("No ContributionsDate found.");
+                    return BadRequest("Too early to submit");
+                }
+
+                if (submitDate > acaYearExists.endDays)
+                {
+                    return BadRequest("Too late to submit");
                 }
 
                 if (!facultyExists)
@@ -334,23 +361,13 @@ namespace COMP1640WebAPI.API.Controllers
                     imagePaths = imagePaths,
                     submissionDate = DateTime.Now,
                     approvalDate = DateTime.Now.AddDays(14),
-                    endDate = contributionsDate.finalEndDate,
+                    endDate = acaYearExists.finalEndDays,
                     status = "Pending",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     commentions = comments,
-                    academicYearId = 1
+                    academicYearId = contributionsDTO.academicYearsId
                 };
-
-                if (contributions.submissionDate < contributionsDate.startDate || contributions.submissionDate > contributionsDate.endDate)
-                {
-                    return BadRequest("Cannot submit, might be too early or overdue");
-                }
-
-                if (contributionsDate.academicYearId != contributions.academicYearId)
-                {
-                    return BadRequest("Invalid input");
-                }
 
                 _context.Contributions.Add(contributions);
                 var users = await _context.Users

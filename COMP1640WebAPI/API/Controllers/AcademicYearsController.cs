@@ -52,24 +52,31 @@ namespace COMP1640WebAPI.API.Controllers
                 return BadRequest();
             }
 
+            if (!academicYear.startDays.HasValue || !academicYear.endDays.HasValue || !academicYear.finalEndDays.HasValue)
+            {
+                return BadRequest("Start date, end date, and final end date are required.");
+            }
+
+            var startDate = new DateTime(academicYear.startDays.Value.Year, academicYear.startDays.Value.Month, academicYear.startDays.Value.Day);
+            var endDate = new DateTime(academicYear.endDays.Value.Year, academicYear.endDays.Value.Month, academicYear.endDays.Value.Day);
+            var finalEndDate = new DateTime(academicYear.finalEndDays.Value.Year, academicYear.finalEndDays.Value.Month, academicYear.finalEndDays.Value.Day);
+
+            var diff1 = (endDate - startDate).TotalDays;
+            var diff2 = (finalEndDate - endDate).TotalDays;
+
+            if (diff1 < 30)
+            {
+                return BadRequest("End date must be 1 month or more after the start date.");
+            }
+
+            if (diff2 < 7)
+            {
+                return BadRequest("Final end date must be 1 week or more after the end date.");
+            }
             _context.Entry(academicYear).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AcademicYearExists(academicYearsId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _context.SaveChangesAsync();
+            
             return NoContent();
         }
 
