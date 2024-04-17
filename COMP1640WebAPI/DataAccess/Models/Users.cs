@@ -11,5 +11,6 @@ namespace COMP1640WebAPI.DataAccess.Models
         public int roleId { get; set; }
         public List<string>? notifications { get; set; }
         public string? facultyName { get; set; }
+        //public string? email {  get; set; }
     }
 }
