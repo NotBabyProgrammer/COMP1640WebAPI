@@ -84,6 +84,7 @@ namespace COMP1640WebAPI.API.Controllers
                     return NotFound();
                 }
 
+                var studentId = await _context.Users.FindAsync(contributions.userId);
                 if (contributionsDTO.approval == null)
                 {
                     return BadRequest("Nullable object must have a value");
@@ -117,18 +118,22 @@ namespace COMP1640WebAPI.API.Controllers
                         MoveFile(imagePath, $"{id}", false);
                     }
                 }
-
+                studentId.notifications = new List<string>();
+                string message = "";
                 // Update properties if provided in the DTO
                 contributions.approval = contributionsDTO.approval;
                 if (contributions.approval == true)
                 {
                     contributions.status = "Accepted";
+                    message = "Your contribution has been accepted";
                 }
                 else if (contributions.approval == false)
                 {
                     contributions.status = "Rejected";
+                    message = "Your contribution has been rejected";
                 }
                 _context.Entry(contributions).State = EntityState.Modified;
+                studentId.notifications.Add(message);
                 await _context.SaveChangesAsync();
 
                 return NoContent();
@@ -397,11 +402,11 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        // DELETE: api/Contributions/5
-        [HttpDelete("ResitArticles")]
-        public async Task<IActionResult> DeleteContributions(ContributionsDTODelete contributionsDTO)
+        // DELETE: api/Contributions/ResitArticles
+        [HttpDelete("ResitArticles/{contributionId}")]
+        public async Task<IActionResult> DeleteContributions(int contributionId)
         {
-            var contributions = await _context.Contributions.FindAsync(contributionsDTO.contributionId);
+            var contributions = await _context.Contributions.FindAsync(contributionId);
             if (contributions == null)
             {
                 return NotFound();
@@ -412,7 +417,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 if (!string.IsNullOrEmpty(filePath))
                 {
-                    DeleteFile(filePath, contributionsDTO.contributionId);
+                    DeleteFile(filePath, contributionId);
                 }
             }
 
@@ -420,7 +425,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 if (!string.IsNullOrEmpty(imagePath))
                 {
-                    DeleteFile(imagePath, contributionsDTO.contributionId);
+                    DeleteFile(imagePath, contributionId);
                 }
             }
 
@@ -434,7 +439,7 @@ namespace COMP1640WebAPI.API.Controllers
                 users.notifications = new List<string>();
             }
 
-            users.notifications.Add($"Your contribution has been remove by Coordinator {contributionsDTO.coordinatorId}");
+            users.notifications.Add($"Your contribution {contributions.title} has been remove");
             await _context.SaveChangesAsync();
 
             return NoContent();
