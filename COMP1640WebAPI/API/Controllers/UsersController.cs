@@ -123,7 +123,6 @@ namespace COMP1640WebAPI.API.Controllers
 
         // POST: api/Users/AddManagerAndCoordinator
         [HttpPost("AddManagerAndCoordinator")]
-        [Authorize]
         public async Task<ActionResult<Users>> AddManagerAndCoordinator(UsersDTOAddMMMC user)
         {
             if (await _repository.IsUsernameExistsAsync(user.userName))
@@ -154,7 +153,6 @@ namespace COMP1640WebAPI.API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        [Authorize]
         public async Task<IActionResult> PutUsers(int id, UsersDTOPut usersDTO)
         {
             var userToUpdate = await _repository.GetUserByIdAsync(id);
@@ -236,7 +234,6 @@ namespace COMP1640WebAPI.API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [Authorize]
         public async Task<IActionResult> DeleteUsers(int id)
         {
             if (!_repository.IsUserExists(id))
