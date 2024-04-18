@@ -82,7 +82,8 @@ namespace COMP1640WebAPI.API.Controllers
                 password = user.password,
                 facultyName = user.facultyName,
                 email = user.email,
-                roleId = 1 //Hardcoded roleId to 1
+                roleId = 1, //Hardcoded roleId to 1
+                avatarPath = "default.png"
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
@@ -170,8 +171,8 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         //PUT: api/Users/ChangeUsername/5
-        [HttpPut("ChangeUsername/{id}")]
-        public async Task<IActionResult> ChangeUsername(int id, UsersDTOEditProfile usersDTO)
+        [HttpPut("EditProfile/{id}")]
+        public async Task<IActionResult> EditProfile(int id, UsersDTOEditProfile usersDTO)
         {
             var userToUpdate = await _repository.GetUserByIdAsync(id);
             if (userToUpdate == null)
@@ -191,35 +192,46 @@ namespace COMP1640WebAPI.API.Controllers
             return NoContent();
         }
 
-        //PUT: api/Users/ChangeEmail/5
-        //[HttpPut("ChangeEmail/{id}")]
-        //public async Task<IActionResult> ChangeEmail(int id, UsersDTOEditEmail usersDTO)
-        //{
-        //    var userToUpdate = await _repository.GetUserByIdAsync(id);
-        //    if (userToUpdate == null)
-        //    {
-        //        return NotFound();
-        //    }
-            
-        //    userToUpdate.email = usersDTO.email;
-        //    await _repository.UpdateUserAsync(userToUpdate);
-        //    return NoContent();
-        //}
+        [HttpGet("Uploads/{userId}")]
+        public async Task<IActionResult> GetAvatarImage(int userId)
+        {
+            var user = await _repository.GetUserByIdAsync(userId);
 
-        //PUT: api/Users/ChangePassword/5
-        //[HttpPut("ChangePassword/{id}")]
-        //public async Task<IActionResult> ChangePassword(int id, UsersDTOEditPassword usersDTO)
-        //{
-        //    var userToUpdate = await _repository.GetUserByIdAsync(id);
-        //    if (userToUpdate == null)
-        //    {
-        //        return NotFound();
-        //    }
+            // Directory where uploaded images are stored
+            var uploadsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "API", "ProfilePictures");
 
-        //    userToUpdate.password = usersDTO.password;
-        //    await _repository.UpdateUserAsync(userToUpdate);
-        //    return NoContent();
-        //}
+            // Full path to the requested image
+            var imagePath = Path.Combine(uploadsDirectory, user.avatarPath);
+
+            if (!System.IO.File.Exists(imagePath))
+            {
+                return NotFound("Image not found.");
+            }
+
+            // Return the image file
+            var imageFileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
+            return File(imageFileStream, "image/jpeg"); // Adjust the content type as needed
+        }
+
+        [HttpPut("UploadImages{userId}")]
+        public async Task<IActionResult> EditProfilePicture(int userId, IFormFile avatar)
+        {
+            var userToUpdate = await _repository.GetUserByIdAsync(userId);
+
+            if (userToUpdate == null)
+            {
+                return NotFound("User not found");
+            }
+
+            if (userToUpdate.avatarPath != "default.png")
+            {
+                DeleteAvatar(userToUpdate.avatarPath);
+            }
+            userToUpdate.avatarPath = await WriteFile(avatar, userToUpdate.userName);
+            await _repository.UpdateUserAsync(userToUpdate);
+
+            return NoContent();
+        }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
@@ -233,5 +245,46 @@ namespace COMP1640WebAPI.API.Controllers
             await _repository.DeleteUserAsync(id);
             return NoContent();
         }
+
+        private async Task<string> WriteFile(IFormFile image, string userName)
+        {
+            string filename = "";
+            try
+            {
+                var extension = "." + image.FileName.Split('.')[image.FileName.Split('.').Length - 1];
+                filename = userName + extension;
+
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\ProfilePictures");
+
+                if (!Directory.Exists(filepath))
+                {
+                    Directory.CreateDirectory(filepath);
+                }
+
+                var exactpath = Path.Combine(Directory.GetCurrentDirectory(), $"API\\ProfilePictures", filename);
+                using (var stream = new FileStream(exactpath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return filename;
+        }
+
+        private void DeleteAvatar(string avatarPath)
+        {
+            var deleteFile = Path.Combine(Directory.GetCurrentDirectory(), $"API\\ProfilePictures\\", avatarPath);
+            if (System.IO.File.Exists(deleteFile))
+            {
+                System.IO.File.Delete(deleteFile);
+            }
+            else
+            {
+                throw new Exception("File not found");
+            }
+        }
+
     }
 }

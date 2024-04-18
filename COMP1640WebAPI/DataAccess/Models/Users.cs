@@ -12,5 +12,6 @@ namespace COMP1640WebAPI.DataAccess.Models
         public List<string>? notifications { get; set; }
         public string? facultyName { get; set; }
         public string? email {  get; set; }
+        public string? avatarPath { get; set; }
     }
 }

@@ -545,25 +545,6 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        [HttpGet("uploads/{imageName}")]
-        public IActionResult GetUploadedImage(string imageName)
-        {
-            // Directory where uploaded images are stored
-            var uploadsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "API", "Upload");
-
-            // Full path to the requested image
-            var imagePath = Path.Combine(uploadsDirectory, imageName);
-
-            if (!System.IO.File.Exists(imagePath))
-            {
-                return NotFound("Image not found.");
-            }
-
-            // Return the image file
-            var imageFileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
-            return File(imageFileStream, "image/jpeg"); // Adjust the content type as needed
-        }
-
         //GET: api//DownloadAllSelected/5
         [HttpGet("DownloadAllSelected")]
         public IActionResult DownloadAllSelected()
