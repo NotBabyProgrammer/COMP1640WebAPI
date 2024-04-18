@@ -60,6 +60,7 @@ namespace COMP1640WebAPI.API.Controllers
 
             return Ok(response);
         }
+        
         // POST: api/Users/register
         [HttpPost("register")]
         public async Task<ActionResult<Users>> Register(UsersDTOPost user)
@@ -170,7 +171,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         //PUT: api/Users/ChangeUsername/5
         [HttpPut("ChangeUsername/{id}")]
-        public async Task<IActionResult> ChangeUsername(int id, UsersDTOEditUserName usersDTO)
+        public async Task<IActionResult> ChangeUsername(int id, UsersDTOEditProfile usersDTO)
         {
             var userToUpdate = await _repository.GetUserByIdAsync(id);
             if (userToUpdate == null)
@@ -184,39 +185,41 @@ namespace COMP1640WebAPI.API.Controllers
             }
 
             userToUpdate.userName = usersDTO.userName;
-            await _repository.UpdateUserAsync(userToUpdate);
-            return NoContent();
-        }
-
-        //PUT: api/Users/ChangeEmail/5
-        [HttpPut("ChangeEmail/{id}")]
-        public async Task<IActionResult> ChangeEmail(int id, UsersDTOEditEmail usersDTO)
-        {
-            var userToUpdate = await _repository.GetUserByIdAsync(id);
-            if (userToUpdate == null)
-            {
-                return NotFound();
-            }
-            
+            userToUpdate.password = usersDTO.password;
             userToUpdate.email = usersDTO.email;
             await _repository.UpdateUserAsync(userToUpdate);
             return NoContent();
         }
 
-        //PUT: api/Users/ChangePassword/5
-        [HttpPut("ChangePassword/{id}")]
-        public async Task<IActionResult> ChangePassword(int id, UsersDTOEditPassword usersDTO)
-        {
-            var userToUpdate = await _repository.GetUserByIdAsync(id);
-            if (userToUpdate == null)
-            {
-                return NotFound();
-            }
+        //PUT: api/Users/ChangeEmail/5
+        //[HttpPut("ChangeEmail/{id}")]
+        //public async Task<IActionResult> ChangeEmail(int id, UsersDTOEditEmail usersDTO)
+        //{
+        //    var userToUpdate = await _repository.GetUserByIdAsync(id);
+        //    if (userToUpdate == null)
+        //    {
+        //        return NotFound();
+        //    }
+            
+        //    userToUpdate.email = usersDTO.email;
+        //    await _repository.UpdateUserAsync(userToUpdate);
+        //    return NoContent();
+        //}
 
-            userToUpdate.password = usersDTO.password;
-            await _repository.UpdateUserAsync(userToUpdate);
-            return NoContent();
-        }
+        //PUT: api/Users/ChangePassword/5
+        //[HttpPut("ChangePassword/{id}")]
+        //public async Task<IActionResult> ChangePassword(int id, UsersDTOEditPassword usersDTO)
+        //{
+        //    var userToUpdate = await _repository.GetUserByIdAsync(id);
+        //    if (userToUpdate == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    userToUpdate.password = usersDTO.password;
+        //    await _repository.UpdateUserAsync(userToUpdate);
+        //    return NoContent();
+        //}
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
