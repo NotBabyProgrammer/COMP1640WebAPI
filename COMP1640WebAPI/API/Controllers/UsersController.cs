@@ -99,6 +99,26 @@ namespace COMP1640WebAPI.API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("ViewUserDetail/{userId}")]
+        public async Task<ActionResult<Users>> ViewUser(int userId)
+        {
+            var user = await _repository.GetUserByIdAsync(userId);
+            var role = await _repository.GetRoleByIdAsync(user.roleId);
+
+            var response = new
+            {
+                Id = user.userId,
+                Username = user.userName,
+                Password = user.password,
+                Email = user.email,
+                Role = role.roleName,
+                Faculty = user.facultyName,
+                Notifications = user.notifications,
+            };
+
+            return Ok(response);
+        }
+
         // POST: api/Users/AddManagerAndCoordinator
         [HttpPost("AddManagerAndCoordinator")]
         [Authorize]

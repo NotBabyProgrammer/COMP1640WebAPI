@@ -424,7 +424,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         // DELETE: api/Contributions/ResitArticles/5
         [HttpDelete("ResitArticles/{contributionId}")]
-        public async Task<IActionResult> DeleteContributions(int contributionId)
+        public async Task<IActionResult> ResitArticles(int contributionId)
         {
             var contributions = await _context.Contributions.FindAsync(contributionId);
             if (contributions == null)
@@ -451,15 +451,16 @@ namespace COMP1640WebAPI.API.Controllers
 
             // Remove contribution from the database
             _context.Contributions.Remove(contributions);
-            var users = await _context.Users.FindAsync(contributions.userId);
 
             // Send notification to student
+            var users = await _context.Users.FindAsync(contributions.userId);
             if (users.notifications == null)
             {
                 users.notifications = new List<string>();
             }
 
             users.notifications.Add($"Your contribution {contributions.title} has been remove");
+            SendEmail(users.email, "Article deleted", $"Your contribution {contributions.title} has been remove");
             await _context.SaveChangesAsync();
 
             return NoContent();
