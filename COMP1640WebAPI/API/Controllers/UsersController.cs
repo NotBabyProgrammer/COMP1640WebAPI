@@ -145,7 +145,8 @@ namespace COMP1640WebAPI.API.Controllers
                 userName = user.userName,
                 password = user.password,
                 roleId = user.roleId,
-                facultyName = user.facultyName
+                facultyName = user.facultyName,
+                email = user.email
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
