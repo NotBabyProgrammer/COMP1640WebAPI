@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using COMP1640WebAPI.BusinesLogic.DTO.Users;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -34,8 +35,8 @@ namespace COMP1640WebAPI.API.Controllers
             var users = await _repository.GetUsers(page, pageSize, userNameFilter);
             return Ok(users);
         }
+        
         // POST: api/Users/login
-        //public async Task<ActionResult<Users>> Login(UsersDTOLogin user)
         [HttpPost("login")]
         public async Task<ActionResult> Login(UsersDTOLogin user)
         {
@@ -53,6 +54,7 @@ namespace COMP1640WebAPI.API.Controllers
                 RoleId = existingUser.roleId,
                 UserName = existingUser.userName,
                 FacultyName = existingUser.facultyName,
+                Email = existingUser.email,
                 AccessToken = accessToken
             };
 
@@ -78,6 +80,7 @@ namespace COMP1640WebAPI.API.Controllers
                 userName = user.userName,
                 password = user.password,
                 facultyName = user.facultyName,
+                email = user.email,
                 roleId = 1 //Hardcoded roleId to 1
             };
             await _repository.AddUserAsync(newUser);
@@ -95,7 +98,6 @@ namespace COMP1640WebAPI.API.Controllers
             };
             return Ok(response);
         }
-
 
         // POST: api/Users/AddManagerAndCoordinator
         [HttpPost("AddManagerAndCoordinator")]
@@ -137,12 +139,6 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound();
             }
-            // Check if the username has changed and if the new username already exists
-            if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
-            {
-                return Conflict("Username existing.");
-            }
-            // Validate if the role exists
             if (!await _repository.IsRoleExistsAsync(usersDTO.roleId))
             {
                 return BadRequest("Invalid roleId. Role does not exist.");
@@ -151,7 +147,57 @@ namespace COMP1640WebAPI.API.Controllers
             await _repository.UpdateUserAsync(userToUpdate);
             return NoContent();
         }
-        
+
+        //PUT: api/Users/ChangeUsername/5
+        [HttpPut("ChangeUsername/{id}")]
+        public async Task<IActionResult> ChangeUsername(int id, UsersDTOEditUserName usersDTO)
+        {
+            var userToUpdate = await _repository.GetUserByIdAsync(id);
+            if (userToUpdate == null)
+            {
+                return NotFound();
+            }
+            // Check if the username has changed and if the new username already exists
+            if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
+            {
+                return Conflict("Username existing.");
+            }
+
+            userToUpdate.userName = usersDTO.userName;
+            await _repository.UpdateUserAsync(userToUpdate);
+            return NoContent();
+        }
+
+        //PUT: api/Users/ChangeEmail/5
+        [HttpPut("ChangeEmail/{id}")]
+        public async Task<IActionResult> ChangeEmail(int id, UsersDTOEditEmail usersDTO)
+        {
+            var userToUpdate = await _repository.GetUserByIdAsync(id);
+            if (userToUpdate == null)
+            {
+                return NotFound();
+            }
+            
+            userToUpdate.email = usersDTO.email;
+            await _repository.UpdateUserAsync(userToUpdate);
+            return NoContent();
+        }
+
+        //PUT: api/Users/ChangePassword/5
+        [HttpPut("ChangePassword/{id}")]
+        public async Task<IActionResult> ChangePassword(int id, UsersDTOEditPassword usersDTO)
+        {
+            var userToUpdate = await _repository.GetUserByIdAsync(id);
+            if (userToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            userToUpdate.password = usersDTO.password;
+            await _repository.UpdateUserAsync(userToUpdate);
+            return NoContent();
+        }
+
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [Authorize]

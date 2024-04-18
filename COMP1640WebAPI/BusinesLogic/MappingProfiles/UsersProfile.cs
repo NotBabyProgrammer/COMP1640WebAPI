@@ -8,8 +8,8 @@ namespace COMP1640WebAPI.BusinesLogic.MappingProfiles
     {
         public UsersProfile()
         {
-            CreateMap<UsersDTOPut, Users>().ForMember(dest => dest.userName, opt => opt.MapFrom(scr => scr.userName)).ForMember(dest => dest.userId, opt => opt.Ignore());
-            CreateMap<Users, UsersDTOPut>().ForMember(dest => dest.userName, opt => opt.MapFrom(scr => scr.userName));
+            CreateMap<UsersDTOPut, Users>().ForMember(dest => dest.roleId, opt => opt.MapFrom(scr => scr.roleId)).ForMember(dest => dest.userId, opt => opt.Ignore());
+            CreateMap<Users, UsersDTOPut>().ForMember(dest => dest.roleId, opt => opt.MapFrom(scr => scr.roleId));
 
             CreateMap<UsersDTODelete, Users>().ForMember(dest => dest.userName, opt => opt.MapFrom(scr => scr.userName));
             CreateMap<Users, UsersDTODelete>().ForMember(dest => dest.userName, opt => opt.MapFrom(scr => scr.userName));

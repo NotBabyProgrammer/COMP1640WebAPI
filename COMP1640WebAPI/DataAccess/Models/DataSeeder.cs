@@ -25,6 +25,7 @@ namespace COMP1640WebAPI.DataAccess.Models
                 _context.Roles.AddRange(roles);
                 _context.SaveChanges();
             }
+
             if(!_context.Faculties.Any())
             {
                 var faculties = new List<Faculties>()
@@ -37,17 +38,7 @@ namespace COMP1640WebAPI.DataAccess.Models
                 _context.Faculties.AddRange(faculties);
                 _context.SaveChanges();
             }
-            if (!_context.GuessAccounts.Any())
-            {
-                var guessAccounts = new List<GuessAccounts>()
-                {
-                    new GuessAccounts { guestName = "Guess1", guestPassword = "secret123", facultyId = 1 },
-                    new GuessAccounts { guestName = "Guess2", guestPassword = "secret123", facultyId = 2 },
-                    new GuessAccounts { guestName = "Guess3", guestPassword = "secret123", facultyId = 3 }
-                };
-                _context.GuessAccounts.AddRange(guessAccounts);
-                _context.SaveChanges();
-            }
+            
             if (!_context.Users.Any())
             {
                 var users = new List<Users>()
@@ -67,17 +58,7 @@ namespace COMP1640WebAPI.DataAccess.Models
                 _context.Users.AddRange(users);
                 _context.SaveChanges();
             }
-            if (!_context.Coordinators.Any())
-            {
-                var coordinators = new List<Coordinators>()
-                {
-                    new Coordinators {userId = 3, facultyId = 1},
-                    new Coordinators {userId = 5, facultyId = 2},
-                    new Coordinators {userId = 6, facultyId = 3}
-                };
-                _context.Coordinators.AddRange(coordinators);
-                _context.SaveChanges();
-            }
+            
             if (!_context.AcademicYears.Any())
             {
                 var aca = new List<AcademicYears>
@@ -85,15 +66,6 @@ namespace COMP1640WebAPI.DataAccess.Models
                     new AcademicYears {startDays = new DateTime(2024, 03, 10), endDays = new DateTime(2024, 05, 10), finalEndDays = new DateTime(2024, 05, 30)}
                 };
                 _context.AcademicYears.AddRange(aca);
-                _context.SaveChanges();
-            }
-            if (!_context.ContributionsDates.Any())
-            {
-                var contributionsDates = new List<ContributionsDates>()
-                {
-                    new ContributionsDates {academicYearId = 1, startDate = new DateTime(2024, 04, 05), endDate = new DateTime(2024, 05, 06), finalEndDate = new DateTime(2024, 05, 20)}
-                };
-                _context.ContributionsDates.AddRange(contributionsDates);
                 _context.SaveChanges();
             }
         }

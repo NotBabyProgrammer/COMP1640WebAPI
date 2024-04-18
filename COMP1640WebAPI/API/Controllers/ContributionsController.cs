@@ -15,6 +15,10 @@ using System.Net.Mime;
 using COMP1640WebAPI.BusinesLogic.DTO.Contributions;
 using NuGet.Packaging;
 using NuGet.Protocol.Core.Types;
+using MimeKit;
+using MimeKit.Text;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -127,11 +131,13 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     contributions.status = "Accepted";
                     message = "Your contribution has been accepted";
+                    SendEmail(studentId.email, "Approval", $"Your contribution {id} has been accepted");
                 }
                 else if (contributions.approval == false)
                 {
                     contributions.status = "Rejected";
                     message = "Your contribution has been rejected";
+                    SendEmail(studentId.email, "Approval", $"Your contribution {id} has been rejected");
                 }
                 _context.Entry(contributions).State = EntityState.Modified;
                 studentId.notifications.Add(message);
@@ -153,6 +159,8 @@ namespace COMP1640WebAPI.API.Controllers
             List<string> filePaths = new List<string>();
             List<string> imagePaths = new List<string>();
             int filesCount = 0;
+
+            var editUser = await _context.Users.FindAsync(contributions.userId);
 
             DateTime editTime = DateTime.Now;
 
@@ -222,6 +230,9 @@ namespace COMP1640WebAPI.API.Controllers
                 filePaths = contributions.filePaths,
                 imagePaths = contributions.imagePaths
             };
+
+
+
             _context.Entry(contributions).State = EntityState.Modified;
 
             var users = await _context.Users
@@ -274,6 +285,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound();
             }
+            //SendEmail("BodyTest");
             contributions.commentions.Add(comment);
             _context.SaveChanges();
 
@@ -296,14 +308,14 @@ namespace COMP1640WebAPI.API.Controllers
                 // Check if FacultyName exists in the Faculties table
                 var facultyExists = await _context.Faculties.AnyAsync(f => f.facultyName == contributionsDTO.facultyName);
 
-                var acaYearExists = await _context.AcademicYears.FindAsync(contributionsDTO.academicYearsId);
+                var academicYear = await _context.AcademicYears.FirstOrDefaultAsync(a => a.academicYear == contributionsDTO.academic);
 
-                if (submitDate < acaYearExists.startDays)
+                if (submitDate < academicYear.startDays)
                 {
                     return BadRequest("Too early to submit");
                 }
 
-                if (submitDate > acaYearExists.endDays)
+                if (submitDate > academicYear.endDays)
                 {
                     return BadRequest("Too late to submit");
                 }
@@ -367,12 +379,12 @@ namespace COMP1640WebAPI.API.Controllers
                     imagePaths = imagePaths,
                     submissionDate = DateTime.Now,
                     approvalDate = DateTime.Now.AddDays(14),
-                    endDate = acaYearExists.finalEndDays,
+                    endDate = academicYear.finalEndDays,
                     status = "Pending",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     commentions = comments,
-                    academicYearId = contributionsDTO.academicYearsId
+                    academic = contributionsDTO.academic
                 };
 
                 _context.Contributions.Add(contributions);
@@ -391,7 +403,14 @@ namespace COMP1640WebAPI.API.Controllers
                         }
 
                         u.notifications.Add($"Student with ID {contributionsDTO.userId} just submitted a contribution.");
+                        if (u.email == null)
+                        {
+                            return BadRequest("One or more coordinators do not have an email");
+                        }
+                        SendEmail(u.email, "Submittion", $"Student with ID {contributionsDTO.userId} just submitted a contribution.");
                     }
+
+                    
                 }
                 await _context.SaveChangesAsync();
 
@@ -662,6 +681,22 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 throw new Exception("File not found");
             }
+        }
+
+        private void SendEmail(string receiveEmail, string subject, string body)
+        {
+            //thanhthanh555ak@gmail.com
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("conglinhoct2003@gmail.com"));
+            email.To.Add(MailboxAddress.Parse(receiveEmail));
+            email.Subject = subject;
+            email.Body = new TextPart(TextFormat.Html) { Text = body };
+
+            using var smtp = new SmtpClient();
+            smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("conglinhoct2003@gmail.com", "adcyvzgxcdyzcrwc");
+            smtp.Send(email);
+            smtp.Disconnect(true);
         }
 
         // FUNCTIONS will be ADDED: download all selected(manager), download to view and approve(coordinator)

@@ -8,7 +8,7 @@ namespace COMP1640WebAPI.DataAccess.Models
         public int academicYearsId { get; set; }
         public string? academicYear {  get; set; }
 
-        // public string 20xx/20xx
+        // public string 20xx-20xx (2023-2024)
         /* start Day == finalEndDays string "DateTime.startDays.Year"
          * start Day != finalEndDays string "{DateTime.startDays.Year}/{DateTime.finalEndDays.Year}"
          */
