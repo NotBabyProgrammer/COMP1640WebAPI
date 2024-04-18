@@ -74,12 +74,23 @@ namespace COMP1640WebAPI.API.Controllers
                 return BadRequest("Final end date must be 1 week or more after the end date.");
             }
 
+            if (finalEndDate.Year == startDate.Year)
+            {
+                academicYear.academicYear = startDate.Year.ToString();
+            }
+
+            else if (finalEndDate.Year != startDate.Year)
+            {
+                academicYear.academicYear = $"{startDate.Year}-{finalEndDate.Year}";
+            }
+
             var updatedAca = new
             {
                 academicYearsId = academicYearsId,
                 startDate = startDate,
                 endDate = endDate,
                 finalEndDate = finalEndDate,
+                academicYear = academicYear,
             };
             _context.Entry(academicYear).State = EntityState.Modified;
 
@@ -96,13 +107,13 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return BadRequest("Start date, end date, and final end date are required.");
             }
-
             var startDate = new DateTime(academicYear.startDays.Value.Year, academicYear.startDays.Value.Month, academicYear.startDays.Value.Day);
             var endDate = new DateTime(academicYear.endDays.Value.Year, academicYear.endDays.Value.Month, academicYear.endDays.Value.Day);
             var finalEndDate = new DateTime(academicYear.finalEndDays.Value.Year, academicYear.finalEndDays.Value.Month, academicYear.finalEndDays.Value.Day);
 
             var diff1 = (endDate - startDate).TotalDays;
             var diff2 = (finalEndDate - endDate).TotalDays;
+            var diff3 = finalEndDate.Year - startDate.Year;
 
             if (diff1 < 30)
             {
@@ -114,10 +125,31 @@ namespace COMP1640WebAPI.API.Controllers
                 return BadRequest("Final end date must be 1 week or more after the end date.");
             }
 
+            if (diff3 >= 2)
+            {
+                return BadRequest("Final end date cannot be that longer than start date");
+            }
+
+            if (finalEndDate.Year == startDate.Year)
+            {
+                academicYear.academicYear = startDate.Year.ToString();
+            }
+
+            else if (finalEndDate.Year != startDate.Year)
+            {
+                academicYear.academicYear = $"{startDate.Year}-{finalEndDate.Year}";
+            }
+
+            var acaExist = await _context.AcademicYears.AnyAsync(x => x.academicYear == academicYear.academicYear);
+            if (acaExist)
+            {
+                return BadRequest("This academic year already exisit");
+            }
+
             _context.AcademicYears.Add(academicYear);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAcademicYear", new { id = academicYear.academicYearsId, startDays = academicYear.startDays, endDays = academicYear.endDays, finalEndDays = academicYear.finalEndDays }, academicYear);
+            return CreatedAtAction("GetAcademicYear", new { id = academicYear.academicYearsId }, academicYear);
         }
 
         // DELETE: api/AcademicYears/5

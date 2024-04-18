@@ -6,6 +6,12 @@ namespace COMP1640WebAPI.DataAccess.Models
     {
         [Key]
         public int academicYearsId { get; set; }
+        public string? academicYear {  get; set; }
+
+        // public string 20xx/20xx
+        /* start Day == finalEndDays string "DateTime.startDays.Year"
+         * start Day != finalEndDays string "{DateTime.startDays.Year}/{DateTime.finalEndDays.Year}"
+         */
         public DateTime? startDays { get; set; }
         public DateTime? endDays { get; set;}
         public DateTime? finalEndDays { get; set; }

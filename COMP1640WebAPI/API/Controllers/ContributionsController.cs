@@ -56,6 +56,7 @@ namespace COMP1640WebAPI.API.Controllers
             return contributions;
         }
 
+        // GET: api/Contributions/GetContributionsByFaculty
         [HttpGet("GetContributionsByFaculty")]
         public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsByFaculty(string facultyName)
         {
@@ -402,7 +403,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        // DELETE: api/Contributions/ResitArticles
+        // DELETE: api/Contributions/ResitArticles/5
         [HttpDelete("ResitArticles/{contributionId}")]
         public async Task<IActionResult> DeleteContributions(int contributionId)
         {
