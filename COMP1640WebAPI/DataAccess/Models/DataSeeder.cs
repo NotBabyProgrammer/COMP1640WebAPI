@@ -43,17 +43,17 @@ namespace COMP1640WebAPI.DataAccess.Models
             {
                 var users = new List<Users>()
                 {
-                    new Users { userName = "Student1", password = "secret123", roleId = 1, facultyName = "Computer Science"},
-                    new Users { userName = "Student2", password = "secret123", roleId = 1, facultyName = "Business Administration" },
-                    new Users { userName = "Student3", password = "secret123", roleId = 1, facultyName = "Graphic Design" },
-                    new Users { userName = "Manager", password = "secret123", roleId = 2, facultyName = "None" },
-                    new Users { userName = "Coordinator1", password = "secret123", roleId = 3, facultyName = "Computer Science" },
-                    new Users { userName = "Coordinator2", password = "secret123", roleId = 3, facultyName = "Business Administration"  },
-                    new Users { userName = "Coordinator3", password = "secret123", roleId = 3, facultyName = "Graphic Design" },
-                    new Users { userName = "Admin", password = "secret123", roleId = 4, facultyName = "None" },
-                    new Users { userName = "Guess1", password = "secret123", roleId = 5, facultyName = "Computer Science" },
-                    new Users { userName = "Guess2", password = "secret123", roleId = 5, facultyName = "Business Administration" },
-                    new Users { userName = "Guess3", password = "secret123", roleId = 5, facultyName = "Graphic Design" }
+                    new Users { userName = "Student1", password = "secret123", roleId = 1, facultyName = "Computer Science", avatarPath = "default.png", email = "thanhthanh555ak@gmail.com"},
+                    new Users { userName = "Student2", password = "secret123", roleId = 1, facultyName = "Business Administration", avatarPath = "default.png", email = "thanhthanh555ak@gmail.com"},
+                    new Users { userName = "Student3", password = "secret123", roleId = 1, facultyName = "Graphic Design", avatarPath = "default.png", email = "thanhthanh555ak@gmail.com"},
+                    new Users { userName = "Manager", password = "secret123", roleId = 2, facultyName = "None", avatarPath = "default.png", email = "conglinhoct2003@gmail.com"},
+                    new Users { userName = "Coordinator1", password = "secret123", roleId = 3, facultyName = "Computer Science", avatarPath = "default.png", email = "long.nguyen.nt2003@gmail.com"},
+                    new Users { userName = "Coordinator2", password = "secret123", roleId = 3, facultyName = "Business Administration", avatarPath = "default.png", email = "long.nguyen.nt2003@gmail.com"},
+                    new Users { userName = "Coordinator3", password = "secret123", roleId = 3, facultyName = "Graphic Design" , avatarPath = "default.png", email = "long.nguyen.nt2003@gmail.com"},
+                    new Users { userName = "Admin", password = "secret123", roleId = 4, facultyName = "None", avatarPath = "default.png", email = "conglinhoct2003@gmail.com"},
+                    new Users { userName = "Guess1", password = "secret123", roleId = 5, facultyName = "Computer Science", avatarPath = "default.png"},
+                    new Users { userName = "Guess2", password = "secret123", roleId = 5, facultyName = "Business Administration" , avatarPath = "default.png"},
+                    new Users { userName = "Guess3", password = "secret123", roleId = 5, facultyName = "Graphic Design", avatarPath = "default.png"}
                 };
                 _context.Users.AddRange(users);
                 _context.SaveChanges();
