@@ -83,7 +83,7 @@ namespace COMP1640WebAPI.API.Controllers
                 facultyName = user.facultyName,
                 email = user.email,
                 roleId = 1, //Hardcoded roleId to 1
-                avatarPath = "default.png"
+                avatarPath = "avatardefault.png"
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
@@ -222,7 +222,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("User not found");
             }
 
-            if (userToUpdate.avatarPath != "default.png")
+            if (userToUpdate.avatarPath != "avatardefault.png")
             {
                 DeleteAvatar(userToUpdate.avatarPath);
             }

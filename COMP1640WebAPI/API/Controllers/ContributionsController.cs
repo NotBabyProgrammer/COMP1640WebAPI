@@ -151,16 +151,164 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        //PUT: api/Contributions/Edit/5
-        [HttpPut("Edit/{id}")]
-        public async Task<IActionResult> EditContributions(int id, [FromForm] ContributionsDTOEdit contributionsDTO, List<IFormFile> files, List<IFormFile> images)
+        //PUT
+        [HttpPut("EditFiles/{id}")]
+        public async Task<IActionResult> EditFiles (int id, List<IFormFile> files)
+        {
+            // int option = 0
+            // option = 1
+            // option = 2
+            var contributions = await _context.Contributions.FindAsync(id);
+            List<string> filePaths = new List<string>();
+            int filesCount = 0;
+            DateTime editTime = DateTime.Now;
+
+            if (editTime > contributions.endDate)
+            {
+                return BadRequest("Cannot edit after the final closure date");
+            }
+
+            if (contributions.status == "Rejected")
+            {
+                return BadRequest("Cannot edit contribution (already being rejected)");
+            }
+
+            if (files == null || files.Count == 0)
+            {
+                return BadRequest("Files not provided.");
+            }
+
+            foreach (var file in contributions.filePaths)
+            {
+                DeleteFile(file, contributions.contributionId);
+            }
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    return BadRequest("File is empty.");
+                }
+                filesCount++;
+                filePaths.Add(await WriteFile(filesCount, file, contributions.title));
+            }
+
+            contributions.filePaths = filePaths;
+            contributions.status = "Pending";
+
+            if (contributions.approval == true)
+            {
+                foreach (var file in filePaths)
+                {
+                    MoveFile(file, $"{id}", true);
+                }
+            }
+            _context.Entry(contributions).State = EntityState.Modified;
+
+            var users = await _context.Users
+                    .Where(u => u.roleId == 3 && u.facultyName == contributions.facultyName)
+                    .ToListAsync();
+
+            foreach (var u in users)
+            {
+                if (u != null)
+                {
+                    // Send notification to all Coordinators in the faculty
+                    if (u.notifications == null)
+                    {
+                        u.notifications = new List<string>();
+                    }
+
+                    u.notifications.Add($"Student with ID {contributions.userId} just edited his/her contribution.");
+                    SendEmail(u.email, "Updation", $"Student with ID {contributions.userId} just edited his/her contribution.");
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+
+        }
+
+        [HttpPut("EditImage/{id}")]
+        public async Task<IActionResult> EditImage(int id, List<IFormFile> files)
         {
             var contributions = await _context.Contributions.FindAsync(id);
             List<string> filePaths = new List<string>();
-            List<string> imagePaths = new List<string>();
             int filesCount = 0;
+            DateTime editTime = DateTime.Now;
 
-            var editUser = await _context.Users.FindAsync(contributions.userId);
+            if (editTime > contributions.endDate)
+            {
+                return BadRequest("Cannot edit after the final closure date");
+            }
+
+            if (contributions.status == "Rejected")
+            {
+                return BadRequest("Cannot edit contribution (already being rejected)");
+            }
+
+            if (files == null || files.Count == 0)
+            {
+                return BadRequest("Files not provided.");
+            }
+
+            foreach (var file in contributions.imagePaths)
+            {
+                DeleteFile(file, contributions.contributionId);
+            }
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    return BadRequest("File is empty.");
+                }
+                filesCount++;
+                filePaths.Add(await WriteFile(filesCount, file, contributions.title));
+            }
+
+            contributions.imagePaths = filePaths;
+            contributions.status = "Pending";
+
+
+            if (contributions.approval == true)
+            {
+                foreach (var file in filePaths)
+                {
+                    MoveFile(file, $"{id}", true);
+                }
+            }
+            _context.Entry(contributions).State = EntityState.Modified;
+
+            var users = await _context.Users
+                    .Where(u => u.roleId == 3 && u.facultyName == contributions.facultyName)
+                    .ToListAsync();
+
+            foreach (var u in users)
+            {
+                if (u != null)
+                {
+                    // Send notification to all Coordinators in the faculty
+                    if (u.notifications == null)
+                    {
+                        u.notifications = new List<string>();
+                    }
+
+                    u.notifications.Add($"Student with ID {contributions.userId} just edited his/her contribution.");
+                    SendEmail(u.email, "Updation", $"Student with ID {contributions.userId} just edited his/her contribution.");
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+
+        }
+
+        //PUT: api/Contributions/Edit/5
+        [HttpPut("EditTitle/{id}")]
+        public async Task<IActionResult> EditTitle(int id, [FromForm] ContributionsDTOEdit contributionsDTO)
+        {
+            var contributions = await _context.Contributions.FindAsync(id);
 
             DateTime editTime = DateTime.Now;
 
@@ -179,65 +327,27 @@ namespace COMP1640WebAPI.API.Controllers
                 return BadRequest("Title is null");
             }
 
-            if (files == null || files.Count == 0)
-            {
-                return BadRequest("Files not provided.");
-            }
-            if (images == null || images.Count == 0)
-            {
-                return BadRequest("Images not provided.");
-            }
-
             //delete existing files and images
-            foreach (var file in contributions.filePaths)
-            {
-                DeleteFile(file, contributions.contributionId);
-            }
-            foreach (var image in contributions.imagePaths)
-            {
-                DeleteFile(image, contributions.contributionId);
-            }
-
-            //add updated files and images
-            foreach (var file in files)
-            {
-                if (file.Length == 0)
-                {
-                    return BadRequest("File is empty.");
-                }
-                filesCount++;
-                filePaths.Add(await WriteFile(filesCount, file, contributionsDTO.title));
-            }
-
-            foreach (var image in images)
-            {
-                if (image.Length == 0)
-                {
-                    return BadRequest("Image is empty.");
-                }
-                filesCount++;
-                imagePaths.Add(await WriteFile(filesCount, image, contributionsDTO.title));
-            }
+            //foreach (var file in contributions.filePaths)
+            //{
+            //    DeleteFile(file, contributions.contributionId);
+            //}
+            //foreach (var image in contributions.imagePaths)
+            //{
+            //    DeleteFile(image, contributions.contributionId);
+            //}
 
             contributions.title = contributionsDTO.title;
-            contributions.filePaths = filePaths;
-            contributions.imagePaths = imagePaths;
-            contributions.status = "Pending...";
-
-            var query = new
-            {
-                title = contributions.title,
-                filePaths = contributions.filePaths,
-                imagePaths = contributions.imagePaths
-            };
-
-
+            contributions.status = "Pending";
 
             _context.Entry(contributions).State = EntityState.Modified;
+
 
             var users = await _context.Users
                     .Where(u => u.roleId == 3 && u.facultyName == contributions.facultyName)
                     .ToListAsync();
+
+            string message = $"Student with ID {contributions.userId} just changed his/her contribution's name {contributionsDTO.title}.";
 
             foreach (var u in users)
             {
@@ -249,11 +359,12 @@ namespace COMP1640WebAPI.API.Controllers
                         u.notifications = new List<string>();
                     }
 
-                    u.notifications.Add($"Student with ID {contributions.userId} just edited his/her contribution.");
+                    u.notifications.Add(message);
+                    SendEmail(u.email, "Title changed", message);
                 }
             }
             await _context.SaveChangesAsync();
-            return Ok(query);
+            return NoContent();
         }
 
         //PUT: api/Contributions/Comment/5
