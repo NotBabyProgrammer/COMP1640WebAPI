@@ -53,13 +53,7 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
                     UserName = user?.userName,
-                    //CommentYear = comment.commentTime.Year,
-                    //CommentMonth = comment.commentTime.Month,
-                    //CommentDay = comment.commentTime.Day,
-                    //CommentHour = comment.commentTime.Hour,
-                    //CommentMinute = comment.commentTime.Minute,
-                    CommentDate = commentDate,
-                    CommentHour = commentHour,
+                    CommentTimeText = commentDate + " AT " + commentHour,
                     Content = comment.contents
                 };
                 response.Add(commentDetails);
@@ -98,7 +92,19 @@ namespace COMP1640WebAPI.API.Controllers
             _context.Commentions.Add(comment);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCommentionsByContributionId), new { contributionId = comment.contributionId }, comment);
+            var commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
+            var commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+
+            var response = new
+            {
+                AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
+                UserName = user?.userName,
+                CommentTimeText = commentDate + " AT " + commentHour,
+                Content = comment.contents
+            };
+
+            return CreatedAtAction(nameof(GetCommentionsByContributionId), new { contributionId = comment.contributionId }, response);
         }
+
     }
 }
