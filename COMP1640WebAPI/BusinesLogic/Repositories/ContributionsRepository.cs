@@ -11,6 +11,7 @@ using COMP1640WebAPI.BusinesLogic.DTO.Contributions;
 using COMP1640WebAPI.BusinesLogic.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Compression;
+using System.Xml.Linq;
 
 namespace COMP1640WebAPI.BusinesLogic.Repositories
 {
@@ -79,9 +80,25 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
                 .ToListAsync();
         }
 
-        public async Task AddContributionAsync(Contributions contribution)
+        public async Task AddContributionAsync(ContributionsDTO contribution)
         {
-            _context.Contributions.Add(contribution);
+            var contributions = new Contributions
+            {
+                userId = contribution.userId,
+                title = contribution.title,
+                filePaths = contribution.filePaths,
+                imagePaths = contribution.imagePaths,
+                submissionDate = contribution.submissionDate,
+                approvalDate = contribution.approvalDate,
+                endDate = contribution.endDate,
+                status = contribution.status,
+                approval = contribution.approval,
+                facultyName = contribution.facultyName,
+                commentions = contribution.commentions,
+                academic = contribution.academic
+            };
+
+            _context.Contributions.Add(contributions);
             await _context.SaveChangesAsync();
         }
 

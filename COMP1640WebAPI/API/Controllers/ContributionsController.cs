@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using COMP1640WebAPI.DataAccess.Data;
-using COMP1640WebAPI.DataAccess.Models;
 using Microsoft.AspNetCore.StaticFiles;
 using COMP1640WebAPI.BusinesLogic.DTO;
 using AutoMapper;
@@ -47,7 +45,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         // GET: api/Contributions/5
         [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsByUserId(int userId)
+        public async Task<ActionResult> GetContributionsByUserId(int userId)
         {
             var contributions = await _repository.GetContributionsByUserIdAsync(userId);
 
@@ -56,12 +54,12 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
-            return contributions.ToList();
+            return Ok(contributions);
         }
 
         // GET: api/Contributions/GetContributionsByFaculty
         [HttpGet("GetContributionsByFaculty")]
-        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsByFaculty(string facultyName)
+        public async Task<ActionResult> GetContributionsByFaculty(string facultyName)
         {
             var contributions = await _repository.GetContributionsByFacultyAsync(facultyName);
 
@@ -70,7 +68,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
-            return contributions.ToList();
+            return Ok(contributions);
         }
 
         // PUT: api/Contributions/Review/5
@@ -402,7 +400,7 @@ namespace COMP1640WebAPI.API.Controllers
         
         // POST: api/Contributions/AddArticles
         [HttpPost("AddArticles")]
-        public async Task<ActionResult<Contributions>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
+        public async Task<ActionResult<ContributionsDTO>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
         {
             try
             {
@@ -479,7 +477,7 @@ namespace COMP1640WebAPI.API.Controllers
                 }
                 List<string> comments = new List<string> {};
 
-                var contribution = new Contributions
+                var contribution = new ContributionsDTO
                 {
                     userId = contributionsDTO.userId,
                     title = contributionsDTO.title,

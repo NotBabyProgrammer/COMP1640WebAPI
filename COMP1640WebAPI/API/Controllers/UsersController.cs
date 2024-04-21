@@ -1,7 +1,5 @@
 ﻿using COMP1640WebAPI.BusinesLogic.DTO;
 using COMP1640WebAPI.BusinesLogic.Repositories;
-using COMP1640WebAPI.DataAccess.Models;
-using COMP1640WebAPI.DataAccess.Migrations.AuthData;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +21,7 @@ namespace COMP1640WebAPI.API.Controllers
         }
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
+        public async Task<ActionResult> GetUsers()
         {
             var users = await _repository.GetUsers();
             return Ok(users);
@@ -63,7 +61,7 @@ namespace COMP1640WebAPI.API.Controllers
         
         // POST: api/Users/register
         [HttpPost("register")]
-        public async Task<ActionResult<Users>> Register(UsersDTOPost user)
+        public async Task<ActionResult<UsersDTO>> Register(UsersDTOPost user)
         {
             var faculty = await _repository.GetFacultyByNameAsync(user.facultyName);
             if (faculty == null)
@@ -76,7 +74,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return Conflict("Username existing.");
             }
 
-            var newUser = new Users
+            var newUser = new UsersDTO
             {
                 userName = user.userName,
                 password = user.password,
@@ -102,7 +100,7 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         [HttpGet("ViewUserDetail/{userId}")]
-        public async Task<ActionResult<Users>> ViewUser(int userId)
+        public async Task<ActionResult> ViewUser(int userId)
         {
             var user = await _repository.GetUserByIdAsync(userId);
             var role = await _repository.GetRoleByIdAsync(user.roleId);
@@ -123,7 +121,7 @@ namespace COMP1640WebAPI.API.Controllers
 
         // POST: api/Users/AddManagerAndCoordinator
         [HttpPost("AddManagerAndCoordinator")]
-        public async Task<ActionResult<Users>> AddManagerAndCoordinator(UsersDTOAddMMMC user)
+        public async Task<ActionResult<UsersDTO>> AddManagerAndCoordinator(UsersDTOAddMMMC user)
         {
             if (await _repository.IsUsernameExistsAsync(user.userName))
             {
@@ -139,7 +137,7 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return BadRequest("Manager must not be in a faculty!");
             }
-            var newUser = new Users
+            var newUser = new UsersDTO
             {
                 userName = user.userName,
                 password = user.password,

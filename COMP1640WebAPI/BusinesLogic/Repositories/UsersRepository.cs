@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NuGet.Protocol.Plugins;
+using COMP1640WebAPI.BusinesLogic.DTO.Users;
 
 namespace COMP1640WebAPI.BusinesLogic.Repositories
 {
@@ -71,9 +72,19 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
             return orderedNotifications;
         }
 
-        public async Task AddUserAsync(Users user)
+        public async Task AddUserAsync(UsersDTO user)
         {
-            _context.Users.Add(user);
+            var newuser = new Users
+            {
+                userId = user.userId,
+                userName = user.userName,
+                avatarPath = user.avatarPath,
+                facultyName = user.facultyName,
+                password = user.password,
+                roleId = user.roleId,
+                email = user.email,
+            };
+            _context.Users.Add(newuser);
             await _context.SaveChangesAsync();
         }
         public async Task UpdateUserAsync(Users user)
