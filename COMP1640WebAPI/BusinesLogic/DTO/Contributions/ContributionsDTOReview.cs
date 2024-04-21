@@ -3,6 +3,6 @@
     public class ContributionsDTOReview
     {
         // functions for Coordinator
-        public bool? approval { get; set; }
+        public bool approval { get; set; }
     }
 }

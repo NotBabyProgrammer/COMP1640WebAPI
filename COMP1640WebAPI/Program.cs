@@ -43,6 +43,8 @@ builder.Services.AddAutoMapper(Assembly.GetEntryAssembly());
 
 builder.Services.AddScoped<UsersRepository>();
 
+builder.Services.AddScoped<ContributionsRepository>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddSignalR();
