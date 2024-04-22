@@ -143,7 +143,8 @@ namespace COMP1640WebAPI.API.Controllers
                 password = user.password,
                 roleId = user.roleId,
                 facultyName = user.facultyName,
-                email = user.email
+                email = user.email,
+                avatarPath = "default.png"
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
@@ -210,7 +211,7 @@ namespace COMP1640WebAPI.API.Controllers
             return File(imageFileStream, "image/jpeg"); // Adjust the content type as needed
         }
 
-        [HttpPut("UploadImages{userId}")]
+        [HttpPut("UploadImages/{userId}")]
         public async Task<IActionResult> EditProfilePicture(int userId, IFormFile avatar)
         {
             var userToUpdate = await _repository.GetUserByIdAsync(userId);
@@ -220,14 +221,14 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("User not found");
             }
 
-            if (userToUpdate.avatarPath != "avatardefault.png")
+            if (userToUpdate.avatarPath != "default.png")
             {
                 DeleteAvatar(userToUpdate.avatarPath);
             }
             userToUpdate.avatarPath = await WriteFile(avatar, userToUpdate.userName);
             await _repository.UpdateUserAsync(userToUpdate);
 
-            return NoContent();
+            return Ok(userToUpdate.avatarPath);
         }
 
         // DELETE: api/Users/5

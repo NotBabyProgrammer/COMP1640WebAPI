@@ -224,7 +224,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
             await _repository.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(contributions.filePaths);
 
         }
 
@@ -303,7 +303,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
             await _repository.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(contributions.imagePaths);
         }
 
         //PUT: api/Contributions/EditTitle/5
@@ -357,7 +357,7 @@ namespace COMP1640WebAPI.API.Controllers
                 }
             }
             await _repository.SaveChangesAsync();
-            return NoContent();
+            return Ok(contributions.title);
         }
         
         //PUT: api/Contributions/Comment/5
