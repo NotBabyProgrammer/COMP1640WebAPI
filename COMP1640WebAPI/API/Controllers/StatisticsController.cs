@@ -51,15 +51,15 @@ namespace COMP1640WebAPI.Controllers
         }
 
         //GET: api/Statistics/ContributionsWithoutComment
-        [HttpGet("ContributionsWithoutComment")]
-        public IActionResult GetContributionsWithoutComment()
-        {
-            var contributionsWithoutComment = _context.Contributions
-                .Where(c => c.commentions == null || c.commentions.Count == 0)
-                .ToList();
+        //[HttpGet("ContributionsWithoutComment")]
+        //public IActionResult GetContributionsWithoutComment()
+        //{
+        //    var contributionsWithoutComment = _context.Contributions
+        //        .Where(c => c.commentions == null || c.commentions.Count == 0)
+        //        .ToList();
 
-            return Ok(contributionsWithoutComment);
-        }
+        //    return Ok(contributionsWithoutComment);
+        //}
 
         // DO MORE ANALYZE FUNCTIONS
     }

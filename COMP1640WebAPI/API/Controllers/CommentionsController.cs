@@ -33,10 +33,7 @@ namespace COMP1640WebAPI.API.Controllers
                 .Where(c => c.contributionId == contributionId)
                 .ToListAsync();
 
-            if (commentions == null || !commentions.Any())
-            {
-                return NotFound("No commentions found for the specified contribution ID.");
-            }
+            
 
             /*
             * Avatar: link

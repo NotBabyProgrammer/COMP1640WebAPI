@@ -381,44 +381,6 @@ namespace COMP1640WebAPI.API.Controllers
             return Ok(contributions.title);
         }
         
-        //PUT: api/Contributions/Comment/5
-        [HttpPut("Comment/{id}")]
-        public async Task<IActionResult> CommentContributions(int id, ContributionsDTOComment contributionsDTO)
-        {
-            var contributions = await _repository.GetContributionByIdAsync(id);
-            //var contributions = _context.Contributions.FirstOrDefault(c => c.contributionId == id);
-            var user = await _repository.GetUserByUsernameAsync(contributionsDTO.userName);
-            //var user =_context.Users.FirstOrDefault(u => u.userName == contributionsDTO.userName);
-            if (contributions == null)
-            {
-                return NotFound("Contribution not found.");
-            }
-
-            if (contributions.commentions == null)
-            {
-                contributions.commentions = new List<string>();
-            }
-
-            string comment = $"{contributionsDTO.userName} commented: {contributionsDTO.commentions}";
-            if (user.roleId == 1)
-            {
-                contributions.status = "New";
-            }
-            else if (user.roleId == 3)
-            {
-                contributions.status = "Reviewed";
-            }
-            else
-            {
-                return NotFound();
-            }
-            //SendEmail("BodyTest");
-            contributions.commentions.Add(comment);
-            await _repository.SaveChangesAsync();
-
-            return NoContent();
-        }
-        
         // POST: api/Contributions/AddArticles
         [HttpPost("AddArticles")]
         public async Task<ActionResult<ContributionsDTO>> PostContributions([FromForm] ContributionsDTOPost contributionsDTO, List<IFormFile> files, List<IFormFile> images, CancellationToken cancellationToken)
@@ -509,7 +471,6 @@ namespace COMP1640WebAPI.API.Controllers
                     status = "Pending",
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
-                    commentions = comments,
                     academic = contributionsDTO.academic,
                     description = "Never gonna give you up"
                 };

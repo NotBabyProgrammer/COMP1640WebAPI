@@ -101,7 +101,6 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
                 status = contribution.status,
                 approval = contribution.approval,
                 facultyName = contribution.facultyName,
-                commentions = contribution.commentions,
                 academic = contribution.academic
             };
 
