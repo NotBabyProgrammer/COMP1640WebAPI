@@ -46,14 +46,23 @@ namespace COMP1640WebAPI.API.Controllers
             var response = new List<object>();
             foreach (var comment in commentions)
             {
+                string commentHour;
+                if (comment.commentTime.Minute < 10)
+                {
+                    commentHour = $"{comment.commentTime.Hour}:0{comment.commentTime.Minute}";
+                }
+                else
+                {
+                    commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+                }
                 string commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
-                string commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+                
                 var user = await _context.Users.FindAsync(comment.userId);
                 var commentDetails = new
                 {
                     AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
                     UserName = user?.userName,
-                    CommentTimeText = commentDate + " AT " + commentHour,
+                    CommentTimeText = commentDate + " at " + commentHour,
                     Content = comment.contents
                 };
                 response.Add(commentDetails);
@@ -92,14 +101,24 @@ namespace COMP1640WebAPI.API.Controllers
             _context.Commentions.Add(comment);
             await _context.SaveChangesAsync();
 
-            var commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
-            var commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+            string commentHour;
+            if (comment.commentTime.Minute < 10)
+            {
+                commentHour = $"{comment.commentTime.Hour}:0{comment.commentTime.Minute}";
+            }
+            else
+            {
+                commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+            }
+
+            string commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
+            
 
             var response = new
             {
                 AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
                 UserName = user?.userName,
-                CommentTimeText = commentDate + " AT " + commentHour,
+                CommentTimeText = commentDate + " at " + commentHour,
                 Content = comment.contents
             };
 

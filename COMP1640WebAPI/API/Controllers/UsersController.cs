@@ -81,7 +81,7 @@ namespace COMP1640WebAPI.API.Controllers
                 facultyName = user.facultyName,
                 email = user.email,
                 roleId = 1, //Hardcoded roleId to 1
-                avatarPath = "avatardefault.png"
+                avatarPath = "default.png"
             };
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
