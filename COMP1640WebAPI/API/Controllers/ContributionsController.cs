@@ -18,6 +18,7 @@ using MimeKit.Text;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using COMP1640WebAPI.BusinesLogic.Repositories;
+using COMP1640WebAPI.DataAccess.Models;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -54,6 +55,27 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound();
             }
 
+            return Ok(contributions);
+        }
+
+        [HttpGet("Pending")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetPendingContributions()
+        {
+            var contributions = await _repository.GetContributionsByStatusAsync("Pending");
+            return Ok(contributions);
+        }
+
+        [HttpGet("Accepted")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetAcceptedContributions()
+        {
+            var contributions = await _repository.GetContributionsByStatusAsync("Accepted");
+            return Ok(contributions);
+        }
+
+        [HttpGet("Rejected")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetRejectedContributions()
+        {
+            var contributions = await _repository.GetContributionsByStatusAsync("Rejected");
             return Ok(contributions);
         }
 
@@ -675,6 +697,7 @@ namespace COMP1640WebAPI.API.Controllers
             }
         }
 
-        // FUNCTIONS will be ADDED: download all selected(manager), download to view and approve(coordinator)
+        // GET CONTRIBUTIONS WHERE STATUS = PENDING,
+        // GET CONTRIBUTIONS WHERE STATUS = ACCEPTED, REJECTED
     }
 }

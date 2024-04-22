@@ -43,6 +43,13 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
                                 .ToListAsync();
         }
 
+        public async Task<List<Contributions>> GetContributionsByStatusAsync(string status)
+        {
+            return await _context.Contributions
+                .Where(c => c.status == status)
+                .ToListAsync();
+        }
+
         public async Task<Contributions> FindContributionByIdAsync(int contributionId)
         {
             return await _context.Contributions.FindAsync(contributionId);
