@@ -8,5 +8,6 @@ namespace COMP1640WebAPI.BusinesLogic.DTO
         public string? title { get; set; } // students name their works
         public string? facultyName { get; set; } // students write in their faculties
         public string? academic { get; set; }
+        public string? description { get; set; }
     }
 }

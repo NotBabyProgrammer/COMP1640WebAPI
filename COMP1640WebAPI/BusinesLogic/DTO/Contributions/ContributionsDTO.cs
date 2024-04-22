@@ -18,5 +18,6 @@ namespace COMP1640WebAPI.BusinesLogic.DTO.Contributions
         public string? facultyName { get; set; } // students write in their faculties
         public List<string>? commentions { get; set; }
         public string? academic { get; set; }
+        public string? description { get; set; }
     }
 }

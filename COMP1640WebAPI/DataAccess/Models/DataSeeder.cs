@@ -63,7 +63,7 @@ namespace COMP1640WebAPI.DataAccess.Models
             {
                 var aca = new List<AcademicYears>
                 {
-                    new AcademicYears {startDays = new DateTime(2024, 03, 10), endDays = new DateTime(2024, 05, 10), finalEndDays = new DateTime(2024, 05, 30)}
+                    new AcademicYears {startDays = new DateTime(2024, 03, 10), endDays = new DateTime(2024, 05, 10), finalEndDays = new DateTime(2024, 05, 30), academicYear = "2024"}
                 };
                 _context.AcademicYears.AddRange(aca);
                 _context.SaveChanges();

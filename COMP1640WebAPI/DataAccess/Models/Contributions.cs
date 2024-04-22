@@ -19,6 +19,7 @@ namespace COMP1640WebAPI.DataAccess.Models
         public string? facultyName { get; set; } // students write in their faculties
         public List<string>? commentions { get; set; }
         public string? academic { get; set; }
+        public string? description { get; set; }
 
         // comment {userId, contributionId, comment}
         // {userName + " commented: " + " "comment"}

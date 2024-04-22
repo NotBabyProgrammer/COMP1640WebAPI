@@ -26,7 +26,6 @@ namespace COMP1640WebAPI.API.Controllers
     [ApiController]
     public class ContributionsController : ControllerBase
     {
-        //private readonly COMP1640WebAPIContext _context;
         private readonly ContributionsRepository _repository;
         private readonly IWebHostEnvironment _environment;
 
@@ -209,7 +208,7 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("File is empty.");
                 }
                 filesCount++;
-                filePaths.Add(await _repository.WriteFile(filesCount, file, $"{contributions.userId}"));
+                filePaths.Add(await _repository.WriteFile(filesCount, file, contributions.title));
             }
 
             contributions.filePaths = filePaths;
@@ -287,7 +286,7 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("File is empty.");
                 }
                 filesCount++;
-                filePaths.Add(await _repository.WriteFile(filesCount, file, $"{contributions.userId}"));
+                filePaths.Add(await _repository.WriteFile(filesCount, file, contributions.title));
             }
 
             contributions.imagePaths = filePaths;
@@ -479,13 +478,12 @@ namespace COMP1640WebAPI.API.Controllers
                 int filesCount = 0;
                 foreach (var file in files)
                 {
-                    
                     if (file.Length == 0)
                     {
                         return BadRequest("File is empty.");
                     }
                     filesCount++;
-                    filePaths.Add(await _repository.WriteFile(filesCount, file, $"{contributionsDTO.userId}"));
+                    filePaths.Add(await _repository.WriteFile(filesCount, file, contributionsDTO.title));
                 }
 
                 foreach (var image in images)
@@ -495,7 +493,7 @@ namespace COMP1640WebAPI.API.Controllers
                         return BadRequest("Image is empty.");
                     }
                     filesCount++;
-                    imagePaths.Add(await _repository.WriteFile(filesCount, image, $"{contributionsDTO.userId}"));
+                    imagePaths.Add(await _repository.WriteFile(filesCount, image, contributionsDTO.title));
                 }
                 List<string> comments = new List<string> {};
 
@@ -512,7 +510,8 @@ namespace COMP1640WebAPI.API.Controllers
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     commentions = comments,
-                    academic = contributionsDTO.academic
+                    academic = contributionsDTO.academic,
+                    description = "Never gonna give you up"
                 };
 
                 await _repository.AddContributionAsync(contribution);
