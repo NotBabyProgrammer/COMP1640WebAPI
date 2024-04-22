@@ -472,7 +472,7 @@ namespace COMP1640WebAPI.API.Controllers
                     approval = false,
                     facultyName = contributionsDTO.facultyName,
                     academic = contributionsDTO.academic,
-                    description = "Never gonna give you up"
+                    description = contributionsDTO.description
                 };
 
                 await _repository.AddContributionAsync(contribution);
