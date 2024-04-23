@@ -33,13 +33,6 @@ namespace COMP1640WebAPI.API.Controllers
                 .Where(c => c.contributionId == contributionId)
                 .ToListAsync();
 
-            
-
-            /*
-            * Avatar: link
-            * Up: Name + commentTime.Year + / + .
-            * Down: "content"
-            */
             var response = new List<object>();
             foreach (var comment in commentions)
             {
@@ -68,8 +61,6 @@ namespace COMP1640WebAPI.API.Controllers
             return Ok(response);
         }
 
-
-
         [HttpPost("AddComment")]
         public async Task<ActionResult<Commentions>> AddComment(CommentionsDTOPost commentDTO)
         {
@@ -83,6 +74,11 @@ namespace COMP1640WebAPI.API.Controllers
             if (contribution == null)
             {
                 return NotFound("Contribution not found.");
+            }
+
+            if (commentDTO.contents == null)
+            {
+                return BadRequest("Write something to let people see what you thought!");
             }
 
             string commentContent = $"{commentDTO.contents}";

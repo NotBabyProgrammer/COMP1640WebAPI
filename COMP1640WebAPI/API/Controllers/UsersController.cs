@@ -177,10 +177,12 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 return NotFound();
             }
-            // Check if the username has changed and if the new username already exists
-            if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
+            if (userToUpdate.userName != usersDTO.userName)
             {
-                return Conflict("Username existing.");
+                if (await _repository.IsUsernameExistsAsync(usersDTO.userName))
+                {
+                    return Conflict("Username existing.");
+                }
             }
 
             userToUpdate.userName = usersDTO.userName;
