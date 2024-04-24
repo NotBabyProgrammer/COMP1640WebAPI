@@ -20,5 +20,6 @@ namespace COMP1640WebAPI.DataAccess.Data
         public DbSet<COMP1640WebAPI.DataAccess.Models.Contributions> Contributions { get; set; }
         public DbSet<COMP1640WebAPI.DataAccess.Models.AcademicYears> AcademicYears { get; set; }
         public DbSet<Commentions> Commentions { get; set; }
+        public DbSet<ChatBoxes> ChatBoxes { get; set; }
     }
 }
