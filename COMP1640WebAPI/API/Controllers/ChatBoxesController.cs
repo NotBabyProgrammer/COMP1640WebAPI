@@ -25,7 +25,7 @@ namespace COMP1640WebAPI.API.Controllers
         }
 
         // GET: api/ChatBox
-        [HttpGet]
+        [HttpGet("{facultyName}")]
         public async Task<IActionResult> GetChatMessagesByFacultyName(string facultyName)
         {
             var chatMessages = await _context.ChatBoxes
@@ -36,26 +36,40 @@ namespace COMP1640WebAPI.API.Controllers
 
             foreach (var chatMessage in chatMessages)
             {
-                string chatDate = $"{chatMessage.chatTime.Day}/{chatMessage.chatTime.Month}/{chatMessage.chatTime.Year}";
-                string chatHour;
-                if (chatMessage.chatTime.Minute < 10)
+                var user = await _context.Users.FindAsync(chatMessage.userId);
+                if (user == null)
                 {
-                    chatHour = $"{chatMessage.chatTime.Hour}:0{chatMessage.chatTime.Minute}";
+                    var chatDetails = new
+                    {
+                        AvatarPath = "https://static.thenounproject.com/png/28755-200.png",
+                        UserName = "Deleted User",
+                        Content = "Message cannot be seen",
+                    };
+                    response.Add(chatDetails);
                 }
                 else
                 {
-                    chatHour = $"{chatMessage.chatTime.Hour}:{chatMessage.chatTime.Minute}";
+                    string chatDate = $"{chatMessage.chatTime.Day}/{chatMessage.chatTime.Month}/{chatMessage.chatTime.Year}";
+                    string chatHour;
+                    if (chatMessage.chatTime.Minute < 10)
+                    {
+                        chatHour = $"{chatMessage.chatTime.Hour}:0{chatMessage.chatTime.Minute}";
+                    }
+                    else
+                    {
+                        chatHour = $"{chatMessage.chatTime.Hour}:{chatMessage.chatTime.Minute}";
+                    }
+
+                    var chatDetails = new
+                    {
+                        AvatarPath = $"https://localhost:7021/api/Users/Uploads/{user.userId}",
+                        FacultyName = chatMessage.facultyName,
+                        UserName = user.userName,
+                        Content = chatMessage.contents,
+                        ChatTime = $"{chatDate} at {chatHour}"
+                    };
+                    response.Add(chatDetails);
                 }
-
-                var chatDetails = new
-                {
-                    FacultyName = chatMessage.facultyName,
-                    UserName = chatMessage.userName,
-                    Content = chatMessage.contents,
-                    ChatTime = $"{chatDate} at {chatHour}"
-                };
-
-                response.Add(chatDetails);
             }
 
             return Ok(response);
@@ -65,7 +79,7 @@ namespace COMP1640WebAPI.API.Controllers
         [HttpPost("AddMessage")]
         public async Task<ActionResult<ChatBoxes>> AddMessage(ChatBoxesDTOPost messageDTO)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.userName == messageDTO.userName);
+            var user = await _context.Users.FindAsync(messageDTO.userId);
             if (user == null)
             {
                 return NotFound("User name not found.");
@@ -81,7 +95,7 @@ namespace COMP1640WebAPI.API.Controllers
             var chatMessage = new ChatBoxes
             {
                 chatTime = DateTime.Now,
-                userName = messageDTO.userName,
+                userId = messageDTO.userId,
                 contents = messageContent,
                 facultyName = messageDTO.facultyName,
             };
@@ -102,12 +116,13 @@ namespace COMP1640WebAPI.API.Controllers
 
             var response = new
             {
-                UserName = user?.userName,
+                AvatarPath = $"https://localhost:7021/api/Users/Uploads/{user.userId}",
+                UserName = user.userName,
                 Content = chatMessage.contents,
                 ChatTime = $"{chatDate} at {chatHour}"
             };
 
-            return CreatedAtAction(nameof(GetChatMessagesByFacultyName), response);
+            return CreatedAtAction(nameof(GetChatMessagesByFacultyName), new { facultyName = chatMessage.facultyName }, response);
         }
     }
 }

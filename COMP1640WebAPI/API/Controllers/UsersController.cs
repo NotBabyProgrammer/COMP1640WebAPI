@@ -24,6 +24,7 @@ namespace COMP1640WebAPI.API.Controllers
         public async Task<ActionResult> GetUsers()
         {
             var users = await _repository.GetUsers();
+
             return Ok(users);
         }
         // GET: api/Users
@@ -33,7 +34,7 @@ namespace COMP1640WebAPI.API.Controllers
             var users = await _repository.GetUsers(page, pageSize, userNameFilter);
             return Ok(users);
         }
-        
+
         // POST: api/Users/login
         [HttpPost("login")]
         public async Task<ActionResult> Login(UsersDTOLogin user)
@@ -128,15 +129,17 @@ namespace COMP1640WebAPI.API.Controllers
                 return Conflict("Username existing.");
             }
 
-            if (user.roleId == 3 && user.facultyName == "None")
+            if ((user.roleId == 3 || user.roleId == 1 || user.roleId == 5) && user.facultyName == "None")
             {
-                return BadRequest("Marketing Coordinator must be in a faculty!");
+                return BadRequest("Marketing Coordinator, Student, or Guest must be in a faculty!");
             }
 
-            if (user.roleId == 2 && user.facultyName != "None")
+            if ((user.roleId == 2 || user.roleId == 4) && user.facultyName != "None")
             {
-                return BadRequest("Manager must not be in a faculty!");
+                return BadRequest("Manager or Admin must not be in a faculty!");
             }
+
+            
             var newUser = new UsersDTO
             {
                 userName = user.userName,
@@ -235,11 +238,15 @@ namespace COMP1640WebAPI.API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsers(int id)
+        public async Task<IActionResult> DeleteUsers(int id, int loggedId)
         {
             if (!_repository.IsUserExists(id))
             {
                 return NotFound();
+            }
+            if (id == loggedId)
+            {
+                return BadRequest("Cannot delete yourself");
             }
             await _repository.DeleteUserAsync(id);
             return NoContent();

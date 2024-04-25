@@ -36,26 +36,39 @@ namespace COMP1640WebAPI.API.Controllers
             var response = new List<object>();
             foreach (var comment in commentions)
             {
-                string commentHour;
-                if (comment.commentTime.Minute < 10)
+                var user = await _context.Users.FindAsync(comment.userId);
+                if (user == null)
                 {
-                    commentHour = $"{comment.commentTime.Hour}:0{comment.commentTime.Minute}";
+                    var commentDetails = new
+                    {
+                        AvatarPath = "https://static.thenounproject.com/png/28755-200.png",
+                        UserName = "Deleted User",
+                        Content = "Comment cannot be seen",
+                    };
+                    response.Add(commentDetails);
                 }
                 else
                 {
-                    commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+                    string commentHour;
+                    if (comment.commentTime.Minute < 10)
+                    {
+                        commentHour = $"{comment.commentTime.Hour}:0{comment.commentTime.Minute}";
+                    }
+                    else
+                    {
+                        commentHour = $"{comment.commentTime.Hour}:{comment.commentTime.Minute}";
+                    }
+                    string commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
+
+                    var commentDetails = new
+                    {
+                        AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
+                        UserName = user?.userName,
+                        CommentTimeText = commentDate + " at " + commentHour,
+                        Content = comment.contents
+                    };
+                    response.Add(commentDetails);
                 }
-                string commentDate = $"{comment.commentTime.Day}/{comment.commentTime.Month}/{comment.commentTime.Year}";
-                
-                var user = await _context.Users.FindAsync(comment.userId);
-                var commentDetails = new
-                {
-                    AvatarLink = $"https://localhost:7021/api/Users/Uploads/{comment.userId}",
-                    UserName = user?.userName,
-                    CommentTimeText = commentDate + " at " + commentHour,
-                    Content = comment.contents
-                };
-                response.Add(commentDetails);
             }
 
             return Ok(response);
@@ -76,7 +89,7 @@ namespace COMP1640WebAPI.API.Controllers
                 return NotFound("Contribution not found.");
             }
 
-            if (commentDTO.contents == null)
+            if (commentDTO.contents == "")
             {
                 return BadRequest("Write something to let people see what you thought!");
             }

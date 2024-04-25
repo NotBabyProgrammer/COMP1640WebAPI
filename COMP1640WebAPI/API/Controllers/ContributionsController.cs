@@ -387,7 +387,7 @@ namespace COMP1640WebAPI.API.Controllers
         {
             try
             {
-                if (contributionsDTO.title == null)
+                if (contributionsDTO.title == null || contributionsDTO.academic == null)
                 {
                     return BadRequest("There are null objects");
                 }

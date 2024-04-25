@@ -64,8 +64,8 @@ namespace COMP1640WebAPI.Migrations
                     b.Property<string>("facultyName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("userName")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("userId")
+                        .HasColumnType("int");
 
                     b.HasKey("chatId");
 
