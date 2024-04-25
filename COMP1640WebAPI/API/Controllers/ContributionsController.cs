@@ -19,6 +19,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using COMP1640WebAPI.BusinesLogic.Repositories;
 using COMP1640WebAPI.DataAccess.Models;
+using Humanizer;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace COMP1640WebAPI.API.Controllers
 {
@@ -71,6 +73,14 @@ namespace COMP1640WebAPI.API.Controllers
             return Ok(contributions);
         }
 
+        // Controller method to get accepted contributions for a specific faculty
+        [HttpGet("accepted/faculty/{facultyName}")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetAcceptedContributionsByFaculty(string facultyName)
+        {
+            var contributions = await _repository.GetContributionsByStatusAndFacultyAsync("Accepted", facultyName);
+            return Ok(contributions);
+        }
+
         [HttpGet("Rejected")]
         public async Task<ActionResult<IEnumerable<Contributions>>> GetRejectedContributions()
         {
@@ -78,6 +88,13 @@ namespace COMP1640WebAPI.API.Controllers
             return Ok(contributions);
         }
 
+        // CREATE FUNCTION TO GET CONTRITBUION (PENDING, ACCEPTED, REJECTED) IN EACH ACADEMIC YEAR
+        [HttpGet("AcademicYears")]
+        public async Task<ActionResult<IEnumerable<Contributions>>> GetContributionsInAcademicYears(string status)
+        {
+            var contributions = await _repository.GetContributionsByStatusAndYearAsync(status);
+            return Ok(contributions);
+        }
         // GET: api/Contributions/GetContributionsByFaculty
         [HttpGet("GetContributionsByFaculty")]
         public async Task<ActionResult> GetContributionsByFaculty(string facultyName)
@@ -105,7 +122,7 @@ namespace COMP1640WebAPI.API.Controllers
                 {
                     return NotFound();
                 }
-                var studentId = await _repository.FindUserByIdAsync(id);
+                var studentId = await _repository.FindUserByIdAsync(contributions.userId);
                 //var studentId = await _context.Users.FindAsync(contributions.userId);
                 if (contributionsDTO.approval == null)
                 {
@@ -140,10 +157,10 @@ namespace COMP1640WebAPI.API.Controllers
                         _repository.MoveFile(imagePath, $"{id}", false);
                     }
                 }
+                contributions.approval = contributionsDTO.approval;
                 studentId.notifications = new List<string>();
                 string message = "";
                 // Update properties if provided in the DTO
-                contributions.approval = contributionsDTO.approval;
                 if (contributions.approval == true)
                 {
                     contributions.status = "Accepted";
@@ -392,6 +409,11 @@ namespace COMP1640WebAPI.API.Controllers
                     return BadRequest("There are null objects");
                 }
 
+                var titleExist = await _repository.DoesTitleExistAsync(contributionsDTO.title);
+                if (titleExist == true)
+                {
+                    return BadRequest("This title is already exist");
+                }
                 DateTime submitDate = DateTime.Now;
 
                 // Check if FacultyName exists in the Faculties table

@@ -50,6 +50,25 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
                 .ToListAsync();
         }
 
+        // Repository method to get contributions by status and faculty
+        public async Task<List<Contributions>> GetContributionsByStatusAndFacultyAsync(string status, string facultyName)
+        {
+            return await _context.Contributions
+                .Where(c => c.status == status && c.facultyName == facultyName) // Filtering by status and faculty
+                .ToListAsync(); // Converting the filtered results to a list
+        }
+
+        public async Task<Dictionary<string, List<Contributions>>> GetContributionsByStatusAndYearAsync(string status)
+        {
+            return await _context.Contributions
+                .Where(c => c.status == status) // Filter by status
+                .GroupBy(c => c.academic)  // Group by academic year
+                .ToDictionaryAsync(
+                    group => group.Key,          // Key will be the academic year
+                    group => group.ToList()      // List of contributions in that academic year with the given status
+                );
+        }
+
         public async Task<Contributions> FindContributionByIdAsync(int contributionId)
         {
             return await _context.Contributions.FindAsync(contributionId);
@@ -73,6 +92,11 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         public async Task<bool> DoesFacultyExistAsync(string facultyName)
         {
             return await _context.Faculties.AnyAsync(f => f.facultyName == facultyName);
+        }
+
+        public async Task<bool> DoesTitleExistAsync (string title)
+        {
+            return await _context.Contributions.AnyAsync(f => f.title == title);
         }
 
         public async Task<AcademicYears> GetAcademicYearByAcademicAsync(string academicYear)

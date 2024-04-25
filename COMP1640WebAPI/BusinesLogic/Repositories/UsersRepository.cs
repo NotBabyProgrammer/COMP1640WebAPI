@@ -9,6 +9,10 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NuGet.Protocol.Plugins;
 using COMP1640WebAPI.BusinesLogic.DTO.Users;
+using MailKit.Security;
+using MimeKit.Text;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace COMP1640WebAPI.BusinesLogic.Repositories
 {
@@ -28,22 +32,27 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
         {
             return await _context.Roles.FindAsync(roleId);
         }
+
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
         }
+
         public async Task<Users> GetUserByIdAsync(int id)
         {
             return await _context.Users.FindAsync(id);
         }
+
         public async Task<Users> GetUserByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.userName == username);
         }
+
         public async Task<bool> IsUsernameExistsAsync(string username)
         {
             return await _context.Users.AnyAsync(u => u.userName == username);
         }
+
         public async Task<Faculties> GetFacultyByNameAsync(string facultyName)
         {
             return await _context.Faculties.FirstOrDefaultAsync(f => f.facultyName == facultyName);
@@ -87,11 +96,13 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
             _context.Users.Add(newuser);
             await _context.SaveChangesAsync();
         }
+
         public async Task UpdateUserAsync(Users user)
         {
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
+
         public async Task DeleteUserAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -101,14 +112,17 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
         public bool IsUserExists(int id)
         {
             return _context.Users.Any(e => e.userId == id);
         }
+
         public string GenerateAccessToken(Users user)
         {
             return "COMP1640";
         }
+
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int page, int pageSize, string? userNameFilter)
         {
             IQueryable<Users> query = _context.Users;
@@ -126,5 +140,29 @@ namespace COMP1640WebAPI.BusinesLogic.Repositories
 
             return users;
         }
+
+        public void SendEmail(string receiveEmail, string subject, string body, bool htmlBody = false)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("conglinhoct2003@gmail.com"));
+            email.To.Add(MailboxAddress.Parse(receiveEmail));
+            email.Subject = subject;
+
+            if (htmlBody)
+            {
+                email.Body = new TextPart(TextFormat.Html) { Text = body };
+            }
+            else
+            {
+                email.Body = new TextPart(TextFormat.Plain) { Text = body };
+            }
+
+            using var smtp = new SmtpClient();
+            smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("conglinhoct2003@gmail.com", "adcyvzgxcdyzcrwc");
+            smtp.Send(email);
+            smtp.Disconnect(true);
+        }
+
     }
 }

@@ -139,16 +139,18 @@ namespace COMP1640WebAPI.API.Controllers
                 return BadRequest("Manager or Admin must not be in a faculty!");
             }
 
-            
             var newUser = new UsersDTO
             {
                 userName = user.userName,
-                password = user.password,
+                // Generate a random 6-character password
+                password = GenerateRandomPassword(6),
                 roleId = user.roleId,
                 facultyName = user.facultyName,
                 email = user.email,
                 avatarPath = "default.png"
             };
+
+            _repository.SendEmail(user.email, "New Account", $"<p>You have a new account!</p><p>User Name: {newUser.userName}</p><p>Password: {newUser.password}</p>", true);
             await _repository.AddUserAsync(newUser);
             return CreatedAtAction(nameof(GetUsers), new { id = newUser.userId }, newUser);
         }
@@ -290,6 +292,14 @@ namespace COMP1640WebAPI.API.Controllers
             {
                 throw new Exception("File not found");
             }
+        }
+
+        private string GenerateRandomPassword(int length)
+        {
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
     }
